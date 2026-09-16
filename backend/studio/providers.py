@@ -5,6 +5,7 @@ from dataclasses import dataclass, asdict
 import hashlib
 import math
 import os
+from .configuration import setting
 from pathlib import Path
 import re
 import httpx
@@ -49,7 +50,7 @@ class MusicProvider(Provider): pass
 def require_live(key):
     if os.getenv('LIVE_GENERATION_ENABLED', 'false').lower() != 'true':
         raise ValueError('Live generation is disabled. Explicit spending authorization is required before enabling it.')
-    if not os.getenv(key):
+    if not setting(key):
         raise ValueError(f'Configure {key} server-side')
 
 
@@ -116,7 +117,7 @@ class RunwayVideoProvider(VideoProvider):
     capabilities = Capabilities(True, True, tuple(range(2, 11)))
     base = 'https://api.dev.runwayml.com/v1'
     def headers(self):
-        return {'Authorization': 'Bearer '+os.environ['RUNWAY_API_KEY'], 'X-Runway-Version': '2024-11-06'}
+        return {'Authorization': 'Bearer '+setting('RUNWAY_API_KEY', ''), 'X-Runway-Version': '2024-11-06'}
     def validate(self, request):
         super().validate(request)
         require_live('RUNWAY_API_KEY')
@@ -125,7 +126,7 @@ class RunwayVideoProvider(VideoProvider):
         if len(request['prompt']) > 1000:
             raise ValueError('Runway prompt must be at most 1000 characters')
     def estimate(self, request):
-        rate = os.getenv('RUNWAY_USD_PER_SECOND')
+        rate = setting('RUNWAY_USD_PER_SECOND')
         return float(rate) * request['duration'] if rate else None
     def submit(self, job_id, request):
         self.validate(request)
@@ -159,14 +160,14 @@ class ElevenLabsNarrationProvider(NarrationProvider):
         if set(request.get('voice_settings', {})) - {'stability','similarity_boost','style','use_speaker_boost','speed'}:
             raise ValueError('Unsupported voice delivery setting')
     def estimate(self, request):
-        rate = os.getenv('ELEVENLABS_USD_PER_CHARACTER')
+        rate = setting('ELEVENLABS_USD_PER_CHARACTER')
         return float(rate) * len(request['text']) if rate else None
     def submit(self, job_id, request):
         self.validate(request)
         body = {k: request[k] for k in ('text','voice_settings','previous_text','next_text') if k in request}
         body['model_id'] = request['model']
         response = provider_request('POST', f'https://api.elevenlabs.io/v1/text-to-speech/{request["voice_id"]}/with-timestamps',
-                                    headers={'xi-api-key':os.environ['ELEVENLABS_API_KEY']}, json=body)
+                                    headers={'xi-api-key':setting('ELEVENLABS_API_KEY', '')}, json=body)
         try:
             data = response.json()
             path = LocalStorage().path(f'tmp/{job_id}.mp3')

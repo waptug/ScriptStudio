@@ -31,6 +31,23 @@ docker compose down                # remove containers, preserve named volumes
 
 ## Create a video
 
+You can write manually or use **Script → Write with AI**. Enter a video idea,
+audience, tone, and target duration, then generate a draft. Edit it in the review box
+and choose **Use this script** (or **Replace script with this draft**). Generation
+never overwrites your script automatically. Save the accepted script or choose
+**Plan scenes & shots** to continue. Prompt/draft review state is kept in this
+browser per project; the accepted script is stored on the server when saved.
+
+Open **Admin** from the dashboard or editor to configure the local Ollama URL,
+list installed models, and select separate script-writing and scene-planning models.
+Admin also stores Runway/ElevenLabs model names, cost estimates, and encrypted API
+credentials. Blank key fields keep existing keys; explicit Clear controls remove them.
+Saved Admin settings override environment defaults and apply to new requests without
+restarting containers. Existing jobs retain their captured model. Paid generation
+still requires the server live-mode setting and project budgets.
+
+See [Admin configuration](docs/admin.md) for credential storage and setup details.
+
 1. Choose **Try the 60-second demo** or **New project** on the dashboard.
 2. In Project settings choose output format, visual style, voice/music providers,
    spending ceiling, and generation concurrency. Save settings. The target duration

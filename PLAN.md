@@ -10,7 +10,16 @@
 Completed locally: 27 backend tests, Chromium end-to-end workflow, PostgreSQL race
 checks, actual worker/Redis restart recovery, 55.125-second sample preview/final,
 and actual OpenShot 2.6.1 desktop bundle loading. See `docs/verification.md`.
-Paid provider and live local-LLM validation require the documented external setup.
+Paid provider validation requires the documented external setup. Local script writing
+has since been verified live, as recorded below.
+
+## Prompt-to-script and Admin follow-up
+
+- [x] Reviewable prompt-to-script workflow alongside manual writing.
+- [x] Separate workflow model settings and installed local-model discovery.
+- [x] Encrypted, write-only Runway/ElevenLabs credentials with replace/clear controls.
+- [x] Runtime settings shared by API/workers with captured job models preserved.
+- [x] Complete live local-inference check and browser verification; deploy locally.
 
 ## Decisions
 

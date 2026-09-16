@@ -1,5 +1,40 @@
 # Verification evidence
 
+## Prompt-to-script and Admin follow-up
+
+The follow-up added separate workflow model selection, installed-model discovery,
+encrypted Runway/ElevenLabs credentials, and an optional prompt-to-script review flow.
+Migration `002_admin_settings` applied successfully to the existing PostgreSQL database.
+
+- Backend suite: **34 passed in 11.69 seconds**. New coverage includes encrypted
+  storage, write-only credential responses, replace/clear behavior, environment-key
+  override, actual provider header lookup, cross-origin rejection, redacted validation
+  failures, model selection, draft isolation, invalid/truncated output, and model discovery.
+  After normalizing standalone visual directions onto their narration paragraphs,
+  the affected Admin/writer/provider tests were rerun: **14 passed in 1.83 seconds**.
+- Existing Chromium production/edit/preview/export test passed (28.5 seconds).
+- New Chromium Admin/writer test passed (1.0 minute): save/reload model choices,
+  preserve manual text during generation, review/edit/apply a draft, save and plan it,
+  and retain the prompt/draft across tab changes. Model output in this browser test
+  is a deterministic HTTP fixture; settings saves and script planning use the real API.
+- Real local inference: installed **gemma3:4b**, Ollama **0.21.1**, draft endpoint
+  returned HTTP 200 with an approximately 35-second herb-gardening script. Project
+  `86d8a1d8-31b8-4205-a04f-9a978c56774e` retained its original saved script after generation.
+  No paid provider was called. Draft estimates are word-count estimates, not measured audio.
+- Live `/api/tags` discovery from the API container succeeded. Structured JSON requests
+  failed on this local Ollama installation with a vocabulary-loading error. Writing
+  uses plain prose; deterministic scene planning remains available. Live AI storyboard
+  planning is not claimed as verified.
+- TypeScript/Vite build passed. The updated Python dependency audit, including
+  cryptography 50.0.1, reported no known vulnerabilities.
+
+Admin uses the same local single-user boundary as the app. Keys are encrypted at rest,
+not shown again after saving, and only decrypted server-side for provider use. No real
+paid-provider key was entered during tests. The existing server live-mode spending gate
+remains disabled. See [Admin setup and backups](admin.md).
+
+## Original implementation verification
+
 Verified locally on 2026-09-15 (America/Los_Angeles), using Docker Compose on Linux/WSL.
 All generation used local mocks. No paid provider requests were made.
 

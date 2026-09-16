@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 import os
+from .configuration import setting
 from pathlib import Path
 import time
 from sqlalchemy import select
@@ -73,7 +74,7 @@ class GenerationCoordinator:
             self.enqueue(session,project,'narration',settings.voice_provider, {
                 'batch_id':batch_id, 'scene_id':scene.id, 'position':index, 'text':scene.narration,
                 'voice_id':settings.voice_id, 'voice_settings':settings.voice_settings,
-                'model':os.getenv('ELEVENLABS_MODEL','eleven_multilingual_v2') if settings.voice_provider=='elevenlabs' else 'espeak-ng',
+                'model':setting('ELEVENLABS_MODEL','eleven_multilingual_v2') if settings.voice_provider=='elevenlabs' else 'espeak-ng',
                 'previous_text':board.scenes[index-1].narration if index else '',
                 'next_text':board.scenes[index+1].narration if index+1<len(board.scenes) else ''})
 
@@ -81,7 +82,7 @@ class GenerationCoordinator:
         settings = Settings.model_validate(project.settings)
         request = {'shot_id':shot.id, 'placeholder_id':placeholder_id, 'prompt':f'{shot.prompt}. Camera: {shot.camera}',
                    'duration':max(2,min(10,math.ceil(duration))), 'camera':shot.camera,
-                   'references':shot.references, 'model':os.getenv('RUNWAY_MODEL','gen4.5') if settings.video_provider=='runway' else 'mock-video-v1',
+                   'references':shot.references, 'model':setting('RUNWAY_MODEL','gen4.5') if settings.video_provider=='runway' else 'mock-video-v1',
                    'ratio':{'landscape':'1280:720','portrait':'720:1280','square':'960:960'}[settings.aspect]}
         if shot.references and settings.video_provider=='runway':
             import base64

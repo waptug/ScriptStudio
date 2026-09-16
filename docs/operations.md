@@ -9,8 +9,11 @@ The web port defaults to `127.0.0.1:8088`. Database, Redis, and API have no publ
 host ports. The application has no authentication: do not expose it publicly until
 adding authenticated authorization, TLS, CSRF protection, and resource/rate controls.
 
-Provider secrets are server environment variables only. Never put real keys in Git.
-Back up your `.env` separately in a secure location. Normal API responses do not expose
+Provider secrets can be saved encrypted through Admin or supplied as server environment
+variables. Never put real keys in Git. Back up your `.env` separately in a secure location.
+The media backup must retain `.credentials/master.key` to decrypt saved Admin keys;
+protect both database and media backups. See [Admin configuration](admin.md).
+Normal API responses do not expose
 keys or temporary provider media URLs. FFmpeg is always invoked with argument arrays;
 script and title text is never shell code. Downloads require authorized HTTPS hosts
 and public IP addresses, disallow redirects, and are size-bounded. Uploads use generated

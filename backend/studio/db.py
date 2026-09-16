@@ -14,6 +14,12 @@ class Base(DeclarativeBase):
     pass
 
 
+class AppSetting(Base):
+    __tablename__ = 'app_settings'
+    key: Mapped[str] = mapped_column(String, primary_key=True)
+    value: Mapped[str] = mapped_column(Text)
+
+
 class Project(Base):
     __tablename__ = 'projects'
     id: Mapped[str] = mapped_column(String, primary_key=True, default=uid)

@@ -11,6 +11,10 @@
   imported Suno music is supported. Optional ElevenLabs Music is deferred.
 - Default planning is deterministic. Optional local Ollama planning needs a reachable
   server and an installed local model; the generic gateway needs its documented JSON contract.
+  Prompt-to-script writing is a separate optional local-model workflow with explicit
+  draft review. Scene planning additionally requires working structured-output support.
+- Admin settings apply to supported adapters, not arbitrary providers. Credentials
+  are encrypted locally; this is still a single-user app without an Admin login.
 - Mock imagery is synthetic labeled footage; speech uses eSpeak and caption timings
   are proportional estimates, not exact speech recognition. Target duration is a
   planning guide; narration is never sped up or padded to pretend it hits a target.

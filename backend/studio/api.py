@@ -12,6 +12,8 @@ from sqlalchemy import select
 from .db import Session, transaction, Project, Asset, Job, public, project_lock
 from .schemas import CreateProject, Edit, Settings, Storyboard, RenderRequest, Timeline, uid
 from .planner import LocalScriptPlanner, HttpScriptPlanner, OllamaScriptPlanner
+from .script_writer import ScriptBrief, ScriptWriter
+from .configuration import setting, ConfigurationService, AdminUpdate
 from .timeline import TimelineService, Conflict
 from .coordinator import GenerationCoordinator
 from .storage import LocalStorage, AssetRepository
@@ -20,6 +22,61 @@ from .budget import BudgetService
 from .providers import get_provider, SubmissionUnknown, RateLimited
 
 app = FastAPI(title='ScriptStudio', version='0.1.0',openapi_url='/api/openapi.json',docs_url='/api/docs')
+
+
+@app.middleware('http')
+async def protect_admin(request, call_next):
+    # Local single-user installation. Reject browser requests from another origin;
+    # deployment beyond loopback still requires real authentication and TLS.
+    if request.url.path.startswith('/api/admin'):
+        from urllib.parse import urlparse
+        origin = request.headers.get('origin')
+        if origin and urlparse(origin).netloc != request.headers.get('host'):
+            return JSONResponse(status_code=403, content={'detail': 'Admin requests must come from this application'})
+        if request.method in ('POST', 'PUT') and not request.headers.get('content-type', '').startswith('application/json'):
+            return JSONResponse(status_code=415, content={'detail': 'Admin changes require JSON'})
+    response = await call_next(request)
+    if request.url.path.startswith('/api/admin'):
+        response.headers['Cache-Control'] = 'no-store'
+    return response
+
+
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
+
+@app.exception_handler(RequestValidationError)
+async def validation_error(request, exc):
+    if request.url.path.startswith('/api/admin'):
+        return JSONResponse(status_code=422, content={'detail': 'Invalid admin settings; check field types and values'})
+    return await request_validation_exception_handler(request, exc)
+
+
+@app.get('/api/admin/settings')
+def admin_settings():
+    return ConfigurationService().public()
+
+
+@app.put('/api/admin/settings')
+def save_admin_settings(payload: AdminUpdate):
+    return ConfigurationService().save(payload)
+
+
+class OllamaModelsRequest(BaseModel):
+    url: str = Field(min_length=1, max_length=500)
+
+
+@app.post('/api/admin/ollama-models')
+def ollama_models(payload: OllamaModelsRequest):
+    import httpx
+    from .local_llm import LocalOllama
+    client = LocalOllama(url=payload.url, model='local-model-discovery')
+    try:
+        response = httpx.get(client.url + '/api/tags', timeout=10)
+        response.raise_for_status()
+        models = response.json()['models']
+        return {'models': [m['name'] for m in models if isinstance(m.get('name'), str) and 'cloud' not in m['name'].lower()]}
+    except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
+        raise ValueError('Cannot list local models. Check the Ollama URL and Docker connectivity.') from exc
 
 @app.exception_handler(SubmissionUnknown)
 @app.exception_handler(RateLimited)
@@ -73,9 +130,10 @@ def health():
 @app.get('/api/providers')
 def providers():
     return {'live_enabled':os.getenv('LIVE_GENERATION_ENABLED','false')=='true',
-            'ollama_configured':bool(os.getenv('OLLAMA_URL') and os.getenv('OLLAMA_MODEL')),
-            'runway_configured':bool(os.getenv('RUNWAY_API_KEY')),
-            'elevenlabs_configured':bool(os.getenv('ELEVENLABS_API_KEY')),
+            'ollama_configured':bool(setting('OLLAMA_URL') and setting('OLLAMA_MODEL')),
+            'script_writer_configured':bool(setting('OLLAMA_URL') and (setting('SCRIPT_WRITER_MODEL') or setting('OLLAMA_MODEL'))),
+            'runway_configured':bool(setting('RUNWAY_API_KEY')),
+            'elevenlabs_configured':bool(setting('ELEVENLABS_API_KEY')),
             'suno':{'enabled':False,'reason':'Official API documentation and account access have not been verified. Import music instead.'},
             'caption_note':'Mock captions use estimated word timing. ElevenLabs uses returned character alignment when available.'}
 
@@ -142,6 +200,20 @@ def plan(project_id: str, planner: str='local'):
         service = {'local':LocalScriptPlanner,'gateway':HttpScriptPlanner,'ollama':OllamaScriptPlanner}[planner]()
         project.storyboard = service.plan(project.script,Settings.model_validate(project.settings)).model_dump()
         return detail(session,project_id)
+
+
+@app.post('/api/projects/{project_id}/script-draft')
+def script_draft(project_id: str, payload: ScriptBrief):
+    # Release the DB session before inference; drafts never hold edit locks or save
+    # over scripts changed by the user while a model is working.
+    with Session() as session:
+        project = session.get(Project, project_id)
+        if not project:
+            raise HTTPException(404, 'Project not found')
+        if session.query(Job).filter_by(project_id=project_id, kind='narration').count():
+            raise ValueError('Production has started. Create a new project to write a new script.')
+        style = Settings.model_validate(project.settings).style
+    return ScriptWriter().generate(payload, style)
 
 
 @app.put('/api/projects/{project_id}/storyboard')

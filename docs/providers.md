@@ -93,6 +93,10 @@ An additional concrete LLM adapter uses the documented
 Run Ollama on a workstation/private server with a locally installed model. Set
 `OLLAMA_URL=http://host.docker.internal:11434` (or your private service address) and
 `OLLAMA_MODEL` to its installed model name, then recreate the API container.
+Alternatively, save these settings in **Admin** to apply them immediately without
+container changes. The script writer has its own **Script writing model** selection
+(`SCRIPT_WRITER_MODEL` environment default); its requests produce reviewable plain-text
+narration before scene planning. See [Admin configuration](admin.md).
 The server must be reachable from Docker; a host service listening only on its own
 loopback may need a private-network bind and firewall rules. Public/cloud endpoints
 and cloud model tags are refused. No model download or paid cloud call is automatic.
@@ -101,5 +105,9 @@ The Script planner selector enables Local Ollama once those settings exist. Plan
 uses `/api/chat`, `stream:false`, temperature 0, and the Pydantic storyboard JSON
 schema. Narration is treated as data, output is validated, and server-generated IDs
 are assigned once then retained through edits. Provider/model output quality still
-requires storyboard review. No Ollama model was installed or exercised live during
-this implementation; its HTTP contract is tested with deterministic fixtures.
+requires storyboard review. Scene planning's HTTP contract is tested with deterministic
+fixtures. The prompt-to-script writer was added separately and checked against the
+installed local model; see [verification evidence](verification.md). Some local Ollama
+installations reject grammar-constrained output with a vocabulary-loading error; use
+deterministic scene planning until that model/server installation supports structured
+output. Plain-text script writing does not require that feature.
