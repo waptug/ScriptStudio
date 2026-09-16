@@ -1,3 +1,5 @@
+import {ThemeToggle} from './ThemeToggle';
+import {ReplicationPrompt} from './ReplicationPrompt';
 import {useEffect, useRef, useState} from 'react';
 
 type Component = {name:string;version:string;group:string;license:string;url:string;role:string;evidence?:string;notice?:string};
@@ -45,7 +47,7 @@ export function About({onClose}:{onClose:()=>void}) {
   const rows=inventory?.components.filter(c=>(group==='All components'||c.group===group)&&`${c.name} ${c.license} ${c.role}`.toLowerCase().includes(query.toLowerCase()))||[];
   const groups=[...new Set(inventory?.components.map(c=>c.group)||[])];
   return <div className="dashboard about">
-    <header><strong className="brand"><img className="brand-logo" src="/logo.svg" alt="" width="32" height="32"/>ScriptStudio</strong><span className="spacer"/><button onClick={onClose}>Back to workspace</button></header>
+    <header><strong className="brand"><img className="brand-logo" src="/logo.svg" alt="" width="32" height="32"/>ScriptStudio</strong><span className="spacer"/><ThemeToggle/><button onClick={onClose}>Back to workspace</button></header>
     <main>
       <div className="eyebrow">BUILT ON SHARED WORK</div>
       <h1 tabIndex={-1} ref={heading}>About this project</h1>
@@ -57,6 +59,7 @@ export function About({onClose}:{onClose:()=>void}) {
         <div className="about-links"><a href="/credits/LICENSE.txt" target="_blank" rel="noreferrer">Read the project license ↗</a><a href="/credits/NOTICE.txt" target="_blank" rel="noreferrer">Read third-party notices ↗</a><a href="/credits/components.json" download>Download component inventory ↓</a><a href="/credits/notices.json" download>Download collected license texts ↓</a></div>
       </section>
       <p className="about-brand-downloads">ScriptStudio brand assets: <a href="/logo.svg" download>Download SVG logo</a> · <a href="/favicon.ico" download>Download ICO icon</a></p>
+      <ReplicationPrompt/>
       <section aria-labelledby="foundation-credits"><h2 id="foundation-credits">Foundation credits</h2><p>Thank you to the maintainers, designers, translators, testers, and contributors who make these tools possible.</p>
       <div className="foundation-grid">{foundations.map(f=><article className="foundation-card" key={f.name}><h3><a href={f.url} target="_blank" rel="noreferrer">{f.name} ↗</a></h3><small>{f.credit}</small><p>{f.role}</p><p className="foundation-license">{f.license}</p></article>)}</div></section>
       <section className="about-context" aria-labelledby="license-boundaries"><h2 id="license-boundaries">Other tools & license boundaries</h2>

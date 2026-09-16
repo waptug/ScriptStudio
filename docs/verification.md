@@ -1,5 +1,32 @@
 # Verification evidence
 
+## Interface themes & Codex replication prompt
+
+Verified locally on 2026-09-16. Every page header has a dark/light toggle; dark
+remains the default. A pre-render script restores the saved browser preference.
+The light palette covers forms, panels, timeline tracks/clips, states, and About
+content, while the video viewing surface remains dark. Theme selection persists
+across reloads, synchronizes tabs, and remains usable when storage is blocked.
+
+About now includes a self-contained replication specification from the canonical
+`frontend/public/codex-goal.txt`, with read/copy/select/download controls. The
+command format was checked against [OpenAI's goals guide](https://learn.chatgpt.com/use-cases/follow-goals).
+The prompt defines functional reconstruction and acceptance evidence, not identical
+source or media output. No replication goal was launched as part of this change.
+
+- Frontend production build, **44 backend tests (11.66 seconds)**, PostgreSQL
+  concurrency checks, and **8 Chromium tests (30.2 seconds)** passed.
+- Theme coverage includes keyboard activation, actual computed surface/clip colors,
+  preference reload, unsaved script preservation, all page headers, cross-tab
+  changes, blocked storage, and mobile overflow. Light editor/About screenshots
+  were visually inspected. Browser coverage caught and resolved an unintended
+  duplicate theme button in the timeline toolbar before final verification.
+- Prompt tests compare displayed text, real clipboard contents, and downloaded
+  bytes; check the text MIME type; and verify clipboard denial opens/selects the
+  complete text for manual copying.
+- Rebuilt and deployed the local web image. `/api/health` returned `status: ok`
+  with paid generation disabled. No provider calls or new dependencies were added.
+
 ## Matching SVG & ICO brand assets
 
 Verified locally on 2026-09-16. The original lime-green slanted S mark is now a

@@ -52,6 +52,21 @@ has since been verified live, as recorded below.
   all application headers and browser favicons, and add About-page downloads.
 - [x] Verify SVG rendering, ICO frames, MIME types, and downloads; deploy locally.
 
+## Interface themes
+
+- [x] Add keyboard-accessible dark/light toggles to every page header, a complete
+  light palette, persistent browser selection, and synchronization across tabs.
+- [x] Verify theme interactions, readability, and local deployment, including
+  reloads, unsaved input, cross-tab updates, keyboard use, and blocked storage.
+
+## Replication goal
+
+- [x] Write a self-contained Codex `/goal` specification covering the application,
+  architecture, safeguards, branding, themes, attribution, and acceptance checks.
+- [x] Add About-page reading, clipboard copy, manual selection, and text download
+  from one canonical public text file.
+- [x] Verify copy/download parity and clipboard denial behavior; deploy locally.
+
 ## Decisions
 
 Python/FastAPI services and Celery workers use PostgreSQL as authority. Redis only

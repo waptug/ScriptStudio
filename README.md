@@ -15,6 +15,9 @@ docker compose up -d --build
 ```
 
 Open **http://localhost:8088**. Only the web port is published, bound to loopback.
+Use **Light mode / Dark mode** in any page header to switch the interface theme.
+Dark is the default; your choice is saved in this browser and shared across tabs.
+If browser storage is blocked, switching still works for the current visit.
 Change `SCRIPTSTUDIO_PORT` in `.env` if that port is occupied. Initial build installs
 FFmpeg, eSpeak, libopenshot, Python dependencies, and frontend tooling. Subsequent
 runs do not need an Internet connection in mock mode.
@@ -162,6 +165,14 @@ and collected copyright notices. The inventory includes transitive dependencies
 and container system packages, with optional tools and source-available Redis
 clearly identified. See [third-party notices](NOTICE.md) for inventory scope and
 the refresh procedure after dependency changes.
+
+The same page includes **Recreate ScriptStudio with Codex**: read, copy, select,
+or download a self-contained `/goal` specification. Its canonical source is
+`frontend/public/codex-goal.txt`; the page, clipboard, and download use that one
+file. It covers functionality, invariants, the zero-dollar generation ceiling,
+and verification requirements. Use it in the Codex workspace where you intend
+to build; copying does not execute it. It specifies a functional recreation,
+not identical source code. See [OpenAI's goals guide](https://learn.chatgpt.com/use-cases/follow-goals).
 
 - [Provider setup and documented capabilities](docs/providers.md)
 - [Architecture and timeline invariants](docs/architecture.md)
