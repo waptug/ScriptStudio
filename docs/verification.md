@@ -1,5 +1,31 @@
 # Verification evidence
 
+## About this project & attribution
+
+Verified locally on 2026-09-16. Dashboard and editor buttons open foundation
+credits, the project GPL-3.0-or-later license, and a searchable component inventory.
+Redis 7.4.2 is identified as source-available under RSALv2 or SSPLv1; optional
+tools, model licenses, and proprietary integrations are distinguished.
+
+- Generated **763 component/license-text records** and **339 distinct collected
+  notices** from the npm lockfile, installed Python distributions, Debian api/db
+  packages, and Alpine web/redis packages, plus foundation/optional tool entries.
+  All Debian package records have a collected copyright notice. Shared documents
+  and license texts are deduplicated; full notices load on demand. Scope and
+  missing embedded notices for other groups are disclosed in the UI.
+- Verified every notice reference resolves and the public GPL/NOTICE copies
+  match repository originals. Re-running the generator reproduced the deployed
+  inventory. `ffmpeg -L` identified the installed build as GPL-2.0-or-later.
+- Frontend production build, **44 backend tests (12.00 seconds)**, and PostgreSQL
+  concurrency checks passed. **4 Chromium tests passed (24.4 seconds)**, covering
+  About navigation, keyboard focus/Escape return, search/filter, MIT notice text,
+  inventory download and content types, empty search, mobile overflow, unsaved
+  script preservation, and the existing local video workflow.
+- Rebuilt/deployed Compose successfully. The mobile About screenshot was visually
+  inspected (`frontend/test-results/about-mobile.png`, ignored). The initial
+  About test needed its filter selector relaxed because the enclosing label also
+  contains option text; no application failure was observed in that check.
+
 ## Export download names
 
 Verified locally on 2026-09-16. MP4, OpenShot ZIP, SRT, and WebVTT downloads

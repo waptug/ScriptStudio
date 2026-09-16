@@ -37,6 +37,15 @@ has since been verified live, as recorded below.
 - [x] Verify all four download filenames in Chromium and deploy locally;
   frontend build, backend coverage, PostgreSQL checks, and 3 browser tests passed.
 
+## About & attribution
+
+- [x] Add About access from dashboard/editor, foundation credits, project license,
+  searchable dependency inventory, and collected license notices.
+- [x] Generate inventory from npm lockfile, installed Python metadata, and running
+  Debian/Alpine package records; distinguish Redis 7.4 source-available licensing.
+- [x] Verify browser navigation, notices, downloads, mobile layout, and deploy
+  locally (44 backend tests and 4 Chromium tests passed).
+
 ## Decisions
 
 Python/FastAPI services and Celery workers use PostgreSQL as authority. Redis only

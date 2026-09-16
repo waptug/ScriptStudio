@@ -156,6 +156,13 @@ The default database is PostgreSQL; SQLite is used only for isolated unit tests.
 
 ## Documentation
 
+Open **About this project** from the dashboard or editor for foundation credits,
+the GPL-3.0-or-later project license, searchable component versions and licenses,
+and collected copyright notices. The inventory includes transitive dependencies
+and container system packages, with optional tools and source-available Redis
+clearly identified. See [third-party notices](NOTICE.md) for inventory scope and
+the refresh procedure after dependency changes.
+
 - [Provider setup and documented capabilities](docs/providers.md)
 - [Architecture and timeline invariants](docs/architecture.md)
 - [OpenShot integration](docs/openshot.md)
