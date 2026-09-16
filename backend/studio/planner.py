@@ -48,6 +48,10 @@ class HttpScriptPlanner(ScriptPlanner):
     def plan(self, script, settings):
         url = os.getenv('PLANNER_URL')
         if not url:raise ValueError('Configure PLANNER_URL for the operator-controlled gateway')
+        # An operator gateway can forward to a billed model. Treat it conservatively;
+        # local deterministic/Ollama planning never goes through this paid gate.
+        from .configuration import require_paid
+        require_paid('text')
         try:
             response = httpx.post(url, json={'script': script, 'settings': settings.model_dump(),
                                             'schema': Storyboard.model_json_schema()}, timeout=120)

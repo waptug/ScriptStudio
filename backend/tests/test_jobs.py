@@ -26,6 +26,8 @@ def test_budget_counts_pending_unknown_and_canceled(project_id):
 
 
 def test_ambiguous_submission_is_never_resubmitted(project_id,monkeypatch):
+    from studio.configuration import ConfigurationService, AdminUpdate
+    ConfigurationService().save(AdminUpdate(paid_generation={'enabled':True,'video':True}))
     class Ambiguous:
         capabilities=Capabilities(True,False)
         calls=0
@@ -62,6 +64,8 @@ def test_restart_submitting_unknown_and_submitted_resumes(project_id,monkeypatch
 
 
 def test_download_retry_keeps_original_generation(project_id,monkeypatch):
+    from studio.configuration import ConfigurationService, AdminUpdate
+    ConfigurationService().save(AdminUpdate(paid_generation={'enabled':True,'video':True}))
     from studio.providers import MockVideoProvider
     from studio.storage import LocalStorage
     output=MockVideoProvider().submit(uid(),{'prompt':'Test','duration':2})['local_path']
@@ -110,6 +114,8 @@ def test_measured_narration_builds_placeholders_before_video(project_id):
 
 
 def test_known_submission_rejection_is_failed_not_unknown(project_id,monkeypatch):
+    from studio.configuration import ConfigurationService, AdminUpdate
+    ConfigurationService().save(AdminUpdate(paid_generation={'enabled':True,'video':True}))
     class Reject:
         capabilities=Capabilities(True,False)
         def submit(self,*args):raise ValueError('Provider rejected HTTP 400')
@@ -125,6 +131,8 @@ def test_known_submission_rejection_is_failed_not_unknown(project_id,monkeypatch
 
 
 def test_rate_limit_backoff_is_bounded_and_safe_to_retry(project_id,monkeypatch):
+    from studio.configuration import ConfigurationService, AdminUpdate
+    ConfigurationService().save(AdminUpdate(paid_generation={'enabled':True,'video':True}))
     from studio.providers import RateLimited
     class Limited:
         capabilities=Capabilities(True,False)

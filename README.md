@@ -43,8 +43,11 @@ list installed models, and select separate script-writing and scene-planning mod
 Admin also stores Runway/ElevenLabs model names, cost estimates, and encrypted API
 credentials. Blank key fields keep existing keys; explicit Clear controls remove them.
 Saved Admin settings override environment defaults and apply to new requests without
-restarting containers. Existing jobs retain their captured model. Paid generation
-still requires the server live-mode setting and project budgets.
+restarting containers. Existing jobs retain their captured model. Under **Admin →
+Paid AI generation**, enable the master switch and the specific text, video, audio,
+speech, or music permission, then save. All category permissions default off.
+Credentials, supported adapters, and project budgets are still required. Turning off
+blocks new submissions, including queued jobs; already-submitted jobs can finish.
 
 See [Admin configuration](docs/admin.md) for credential storage and setup details.
 

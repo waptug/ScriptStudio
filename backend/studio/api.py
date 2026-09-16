@@ -13,7 +13,7 @@ from .db import Session, transaction, Project, Asset, Job, public, project_lock
 from .schemas import CreateProject, Edit, Settings, Storyboard, RenderRequest, Timeline, uid
 from .planner import LocalScriptPlanner, HttpScriptPlanner, OllamaScriptPlanner
 from .script_writer import ScriptBrief, ScriptWriter
-from .configuration import setting, ConfigurationService, AdminUpdate
+from .configuration import setting, ConfigurationService, AdminUpdate, paid_permissions
 from .timeline import TimelineService, Conflict
 from .coordinator import GenerationCoordinator
 from .storage import LocalStorage, AssetRepository
@@ -124,12 +124,12 @@ def detail(session, project_id):
 def health():
     with Session() as session:
         session.execute(select(Project.id).limit(1))
-    return {'status':'ok','live_enabled':os.getenv('LIVE_GENERATION_ENABLED','false')=='true'}
+    return {'status':'ok','live_enabled':paid_permissions()['enabled']}
 
 
 @app.get('/api/providers')
 def providers():
-    return {'live_enabled':os.getenv('LIVE_GENERATION_ENABLED','false')=='true',
+    return {'live_enabled':paid_permissions()['enabled'], 'paid_generation':paid_permissions(),
             'ollama_configured':bool(setting('OLLAMA_URL') and setting('OLLAMA_MODEL')),
             'script_writer_configured':bool(setting('OLLAMA_URL') and (setting('SCRIPT_WRITER_MODEL') or setting('OLLAMA_MODEL'))),
             'runway_configured':bool(setting('RUNWAY_API_KEY')),

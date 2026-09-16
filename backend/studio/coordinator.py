@@ -4,7 +4,7 @@ import hashlib
 import json
 import math
 import os
-from .configuration import setting
+from .configuration import setting, require_paid, PaidGenerationDisabled
 from pathlib import Path
 import time
 from sqlalchemy import select
@@ -50,6 +50,8 @@ class NarrationService:
 
 class GenerationCoordinator:
     def enqueue(self, session, project, kind, provider_name, inputs):
+        if provider_name != 'mock':
+            require_paid({'narration':'speech', 'sfx':'audio'}.get(kind, kind))
         provider = get_provider(kind,provider_name)
         provider.validate(inputs)
         estimate = provider.estimate(inputs)
@@ -205,6 +207,10 @@ class GenerationCoordinator:
             else:
                 provider = get_provider(kind,provider_name)
                 if state=='submitting':
+                    # Check immediately before a worker starts a new paid request.
+                    # Polling/downloads for previously submitted work remain permitted.
+                    if provider_name != 'mock':
+                        require_paid({'narration':'speech', 'sfx':'audio'}.get(kind, kind))
                     self.set(job_id,state='submitting',attempts=attempts+1)
                     result = provider.submit(job_id,inputs)
                     provider_id = result['provider_id']
@@ -241,6 +247,9 @@ class GenerationCoordinator:
                 self.complete(session,project,job,asset)
             if kind=='narration':
                 self.try_assembly(project_id)
+        except PaidGenerationDisabled as exc:
+            self.set(job_id,state='failed',error=str(exc),lease_until=0,
+                     result={**result,'retry_state':'queued','safe_to_retry_submission':True})
         except RateLimited:
             self.retry_later(job_id,'Provider rate limited the request',safe_submission=True)
         except SubmissionUnknown as exc:

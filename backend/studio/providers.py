@@ -5,7 +5,7 @@ from dataclasses import dataclass, asdict
 import hashlib
 import math
 import os
-from .configuration import setting
+from .configuration import setting, require_paid
 from pathlib import Path
 import re
 import httpx
@@ -47,9 +47,8 @@ class NarrationProvider(Provider): pass
 class MusicProvider(Provider): pass
 
 
-def require_live(key):
-    if os.getenv('LIVE_GENERATION_ENABLED', 'false').lower() != 'true':
-        raise ValueError('Live generation is disabled. Explicit spending authorization is required before enabling it.')
+def require_live(key, category):
+    require_paid(category)
     if not setting(key):
         raise ValueError(f'Configure {key} server-side')
 
@@ -120,7 +119,7 @@ class RunwayVideoProvider(VideoProvider):
         return {'Authorization': 'Bearer '+setting('RUNWAY_API_KEY', ''), 'X-Runway-Version': '2024-11-06'}
     def validate(self, request):
         super().validate(request)
-        require_live('RUNWAY_API_KEY')
+        require_live('RUNWAY_API_KEY', 'video')
         if request['ratio'] not in ('1280:720','720:1280') and not request.get('prompt_image'):
             raise ValueError('Runway gen4.5 text-only supports landscape/portrait. Supply a reference image for square.')
         if len(request['prompt']) > 1000:
@@ -152,7 +151,7 @@ class RunwayVideoProvider(VideoProvider):
 class ElevenLabsNarrationProvider(NarrationProvider):
     capabilities = Capabilities(False, False, alignment=True)
     def validate(self, request):
-        require_live('ELEVENLABS_API_KEY')
+        require_live('ELEVENLABS_API_KEY', 'speech')
         if not re.fullmatch(r'[A-Za-z0-9_-]+', request['voice_id']):
             raise ValueError('Invalid ElevenLabs voice ID')
         if not 1 <= len(request['text']) <= 5000:

@@ -32,7 +32,33 @@ Saved Admin values take precedence over environment defaults, including intentio
 blank values. Changes affect subsequent requests in both API and workers. Queued video
 and narration requests already contain their model and do not switch when Admin changes.
 Keys are read when a provider call is made; avoid changing provider accounts while jobs
-are active. Saving credentials never changes `LIVE_GENERATION_ENABLED` or project budgets.
+are active. Saving credentials alone never changes paid permissions or project budgets.
+
+## Paid generation controls
+
+**Allow paid AI generation** is the master switch. Separate switches govern **text**,
+**video**, **audio** (general audio/sound effects), **speech** (narration), and **music**.
+Changes apply when **Save admin settings** is clicked. The master and matching category
+must both be enabled. Turning off the master preserves category selections but blocks
+them all. Category permissions default off; an existing `LIVE_GENERATION_ENABLED=true`
+environment variable is only an initial master default, not a bypass of category checks.
+Once saved in Admin, the master setting overrides that environment variable.
+
+Runway checks video permission; ElevenLabs checks speech permission. The optional
+operator-controlled planner gateway is conservatively gated as text because it can
+forward to paid models; its billing/limits still need to be enforced by that gateway.
+There is no direct paid text adapter, general-audio adapter, or paid music adapter yet.
+Those saved permissions do not connect new providers or enable the disabled Suno API.
+Local Ollama, deterministic planning, mock generation, imports, preview, and export
+are unaffected by paid permissions.
+
+Permissions are checked when jobs are queued and immediately before new worker
+submissions. A blocked queued job becomes failed with an actionable explanation and
+zero new submission attempts. After enabling the permission, explicitly Retry that job.
+Re-enabling alone does not resubmit failed jobs. Polling, cancellation, and downloading
+already-submitted tasks continue so results are retained; disabling cannot retract an
+already-started provider request or reverse charges. Project cost reservations and
+spending ceilings remain enforced; switches never raise a budget or start production.
 
 ## Credential storage
 

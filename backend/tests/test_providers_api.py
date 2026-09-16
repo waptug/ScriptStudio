@@ -17,6 +17,8 @@ def test_live_gate_and_suno_boundary():
 
 
 def test_runway_documented_contract_with_transport_mock(monkeypatch):
+    from studio.configuration import ConfigurationService, AdminUpdate
+    ConfigurationService().save(AdminUpdate(paid_generation={'enabled':True,'video':True,'speech':True}))
     monkeypatch.setenv('LIVE_GENERATION_ENABLED','true')
     monkeypatch.setenv('RUNWAY_API_KEY','test-only-not-a-real-key')
     requests=[]
@@ -39,6 +41,8 @@ def test_runway_documented_contract_with_transport_mock(monkeypatch):
 
 
 def test_elevenlabs_timestamp_response_saved_with_context(monkeypatch):
+    from studio.configuration import ConfigurationService, AdminUpdate
+    ConfigurationService().save(AdminUpdate(paid_generation={'enabled':True,'video':True,'speech':True}))
     monkeypatch.setenv('LIVE_GENERATION_ENABLED','true');monkeypatch.setenv('ELEVENLABS_API_KEY','test-only')
     captured={}
     def request(method,url,**kwargs):

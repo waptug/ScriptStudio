@@ -3,7 +3,7 @@ import fcntl
 import os
 from pathlib import Path
 from cryptography.fernet import Fernet, InvalidToken
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, StrictBool
 from .db import AppSetting, Session, transaction
 
 DEFAULTS = {
@@ -12,6 +12,38 @@ DEFAULTS = {
     'RUNWAY_USD_PER_SECOND': '0.12', 'ELEVENLABS_USD_PER_CHARACTER': '',
 }
 SECRETS = {'RUNWAY_API_KEY', 'ELEVENLABS_API_KEY'}
+PAID_CATEGORIES = ('text', 'video', 'audio', 'speech', 'music')
+
+
+def paid_permissions():
+    """Read current permissions in one snapshot; only the master has an env fallback."""
+    with Session() as session:
+        stored = {row.key: row.value for row in session.query(AppSetting).filter(
+            AppSetting.key.in_(['LIVE_GENERATION_ENABLED'] + [f'PAID_{kind.upper()}_ENABLED' for kind in PAID_CATEGORIES]))}
+    return {'enabled': stored.get('LIVE_GENERATION_ENABLED', os.getenv('LIVE_GENERATION_ENABLED', 'false')).lower() == 'true',
+            **{kind: stored.get(f'PAID_{kind.upper()}_ENABLED', 'false') == 'true' for kind in PAID_CATEGORIES}}
+
+
+def require_paid(category):
+    if category not in PAID_CATEGORIES:
+        raise ValueError('Unsupported paid generation category')
+    policy = paid_permissions()
+    if not policy['enabled'] or not policy[category]:
+        raise PaidGenerationDisabled(f'Paid {category} generation is disabled in Admin. Enable the master switch and this category before submitting new requests.')
+
+
+class PaidGenerationDisabled(ValueError):
+    """Known local rejection: no paid request was submitted."""
+
+
+class PaidPermissionsUpdate(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    enabled: StrictBool | None = None
+    text: StrictBool | None = None
+    video: StrictBool | None = None
+    audio: StrictBool | None = None
+    speech: StrictBool | None = None
+    music: StrictBool | None = None
 
 
 def cipher(create=False):
@@ -54,6 +86,7 @@ class AdminUpdate(BaseModel):
     values: dict[str, str] = Field(default_factory=dict)
     credentials: dict[str, str] = Field(default_factory=dict)
     clear_credentials: list[str] = Field(default_factory=list)
+    paid_generation: PaidPermissionsUpdate = Field(default_factory=PaidPermissionsUpdate)
 
 
 class ConfigurationService:
@@ -64,7 +97,8 @@ class ConfigurationService:
             'values': {key: stored.get(key, os.getenv(key, value)) for key, value in DEFAULTS.items()},
             'credentials': {key: {'configured': bool(stored.get(key, os.getenv(key, ''))),
                                    'source': 'admin' if key in stored else 'environment'} for key in SECRETS},
-            'live_enabled': os.getenv('LIVE_GENERATION_ENABLED', 'false').lower() == 'true',
+            'live_enabled': paid_permissions()['enabled'],
+            'paid_generation': paid_permissions(),
         }
 
     def save(self, payload):
@@ -97,6 +131,9 @@ class ConfigurationService:
             credentials[key] = cipher(create=True).encrypt(value.encode()).decode()
         values.update(credentials)
         values.update({key: '' for key in payload.clear_credentials})
+        for category, enabled in payload.paid_generation.model_dump(exclude_none=True).items():
+            key = 'LIVE_GENERATION_ENABLED' if category == 'enabled' else f'PAID_{category.upper()}_ENABLED'
+            values[key] = 'true' if enabled else 'false'
         with transaction() as session:
             for key, value in values.items():
                 row = session.get(AppSetting, key)

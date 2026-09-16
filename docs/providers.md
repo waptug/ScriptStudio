@@ -4,11 +4,13 @@ No paid API request was authorized or made during development. Mock mode is the
 startup default. Environment variables stay server-side; `.env` is ignored by Git.
 
 Before enabling live generation, obtain explicit operator authorization and a defined
-USD limit, set `LIVE_GENERATION_ENABLED=true`, configure credentials/rates in `.env`,
-restart with `docker compose up -d`, and set a project spending ceiling. The server
+USD limit, configure credentials/rates in Admin, set a project spending ceiling,
+and save the **Allow paid AI generation** master switch plus the matching category
+under **Admin → Paid AI generation**. No restart is needed. `LIVE_GENERATION_ENABLED`
+is only the master's initial environment default; category permissions default off. The server
 refuses requests with unavailable estimates or insufficient budget. Estimates include
 pending and unknown requests and are labeled; actual billing may differ. Keep a
-conservative margin. Server live mode is an authorization gate, not a billing oracle.
+conservative margin. Paid permissions authorize requests; they do not report actual billing.
 
 ## Runway
 

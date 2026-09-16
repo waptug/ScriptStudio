@@ -20,6 +20,9 @@ PostgreSQL, Celery/Redis, persistent local media, libopenshot, and FFmpeg.
   cost reservations, and operator reconciliation independent of new generation.
 - Keep mock mode visibly labeled. Never claim live provider validation from mocks.
 - No paid calls without explicit authorization and a defined spending ceiling.
+- Every new paid adapter must enforce the Admin master and matching category both
+  when enqueueing and before submission. Disabling must not prevent retrieval of
+  existing submitted tasks. Keep mock/local processing outside the paid gate.
 
 ## Validation
 

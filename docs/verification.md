@@ -1,5 +1,26 @@
 # Verification evidence
 
+## Paid generation controls
+
+Verified locally on 2026-09-16 using the current source and rebuilt Compose images.
+
+- Backend suite: **43 passed in 13.27 seconds**, with three dependency deprecation
+  warnings. The source was mounted read-only into the test container. Permission
+  tests cover defaults, persistence, independent categories, master override,
+  direct adapter gates, project budgets, blocking queued submissions, explicit
+  retry, and continued polling of an existing provider task after disabling.
+- TypeScript/Vite production build passed. PostgreSQL concurrency checks passed
+  for simultaneous budget reservations and job claims.
+- Chromium suite: **3 passed in 24.1 seconds**. The paid-controls test exercised
+  every switch, save/reload, and master override using intercepted Admin responses;
+  it never enabled paid generation in the running server. Actual API persistence
+  is covered by the isolated backend tests. The other browser tests verified the
+  script review flow and real local mock production, timeline editing, preview
+  playback/seeking, final export, and the OpenShot handoff link.
+- `docker compose up -d --build` completed; API, worker, beat, web, PostgreSQL,
+  and Redis are running. The loopback `/api/providers` endpoint reported the
+  master and all five categories disabled. No paid provider requests were made.
+
 ## Prompt-to-script and Admin follow-up
 
 The follow-up added separate workflow model selection, installed-model discovery,

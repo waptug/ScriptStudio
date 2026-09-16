@@ -21,6 +21,15 @@ has since been verified live, as recorded below.
 - [x] Runtime settings shared by API/workers with captured job models preserved.
 - [x] Complete live local-inference check and browser verification; deploy locally.
 
+## Paid generation controls
+
+- [x] Persist master and text/video/audio/speech/music permissions in Admin.
+- [x] Enforce permissions in adapters, queueing, and new worker submissions.
+- [x] Preserve monitoring/retrieval of submitted tasks and existing budget checks.
+- [x] Verify backend permission and recovery behavior (43 tests passed).
+- [x] Verify browser controls and finish local deployment (3 Chromium tests passed;
+  rebuilt Compose stack verified at localhost:8088 with all paid permissions off).
+
 ## Decisions
 
 Python/FastAPI services and Celery workers use PostgreSQL as authority. Redis only
