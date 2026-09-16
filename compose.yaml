@@ -1,0 +1,68 @@
+name: scriptstudio
+x-backend: &backend
+  build: ./backend
+  environment: &env
+    DATABASE_URL: postgresql+psycopg://studio:${POSTGRES_PASSWORD:-local-scriptstudio}@db/studio
+    REDIS_URL: redis://redis:6379/0
+    OLLAMA_URL: ${OLLAMA_URL:-}
+    OLLAMA_MODEL: ${OLLAMA_MODEL:-}
+    PLANNER_URL: ${PLANNER_URL:-}
+    MEDIA_ROOT: /data
+    LIVE_GENERATION_ENABLED: ${LIVE_GENERATION_ENABLED:-false}
+    RUNWAY_API_KEY: ${RUNWAY_API_KEY:-}
+    RUNWAY_MODEL: ${RUNWAY_MODEL:-gen4.5}
+    RUNWAY_USD_PER_SECOND: ${RUNWAY_USD_PER_SECOND:-0.12}
+    ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+    ELEVENLABS_MODEL: ${ELEVENLABS_MODEL:-eleven_multilingual_v2}
+    ELEVENLABS_USD_PER_CHARACTER: ${ELEVENLABS_USD_PER_CHARACTER:-}
+    DOWNLOAD_HOSTS: ${DOWNLOAD_HOSTS:-*.runwayml.com,*.cloudfront.net}
+  extra_hosts: ["host.docker.internal:host-gateway"]
+  volumes: [media:/data]
+  depends_on:
+    db: {condition: service_healthy}
+    redis: {condition: service_healthy}
+services:
+  db:
+    image: postgres:17.4-bookworm
+    environment:
+      POSTGRES_USER: studio
+      POSTGRES_DB: studio
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-scriptstudio}
+    volumes: [database:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U studio]
+      interval: 3s
+      retries: 20
+  redis:
+    image: redis:7.4.2-alpine
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 3s
+      retries: 20
+  migrate:
+    <<: *backend
+    command: [alembic, upgrade, head]
+  api:
+    <<: *backend
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+  worker:
+    <<: *backend
+    command: [celery, -A, studio.worker:celery, worker, --loglevel=warning, --concurrency=4]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+  beat:
+    <<: *backend
+    command: [celery, -A, studio.worker:celery, beat, --loglevel=warning, --schedule=/tmp/celerybeat]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+  web:
+    build: ./frontend
+    ports: ["127.0.0.1:${SCRIPTSTUDIO_PORT:-8088}:80"]
+    depends_on: [api]
+volumes:
+  database:
+  media:

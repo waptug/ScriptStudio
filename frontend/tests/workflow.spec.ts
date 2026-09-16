@@ -1,0 +1,50 @@
+import {test,expect} from '@playwright/test';
+
+test('create, plan, produce, edit, reload, preview and export',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');
+ await page.getByRole('button',{name:'New project'}).click();
+ await page.getByLabel('Script',{exact:true}).fill('[Sunrise] A quiet river flows through the forest. Morning light touches the water.');
+ await page.getByRole('button',{name:'Plan scenes & shots'}).click();
+ await expect(page.getByRole('heading',{name:/Storyboard/})).toBeVisible();
+ await page.getByRole('button',{name:'Start production'}).click();
+ await expect(page.locator('.clip.video').first()).not.toHaveClass(/placeholder/,{timeout:90000});
+ // This smoke tests editing after production. Unit tests exercise completion/edit
+ // conflicts; waiting for one shot alone can race the remaining automatic placements.
+ await expect(page.locator('.production-strip strong')).toHaveText('Production workspace',{timeout:90000});
+ await page.getByRole('button',{name:'Title',exact:false}).filter({hasText:'＋ Title'}).click();
+ await page.locator('.clip.title').click();
+ await page.getByRole('textbox',{name:'Clip text',exact:true}).fill('A new beginning');
+ await page.getByRole('textbox',{name:'Clip text',exact:true}).blur();
+ await expect(page.locator('.clip.title')).toContainText('A new beginning');
+ await page.getByRole('button',{name:'Undo',exact:true}).click();
+ await expect(page.locator('.clip.title')).toContainText('Your title');
+ await page.getByRole('button',{name:'Redo',exact:true}).click();
+ await expect(page.locator('.clip.title')).toContainText('A new beginning');
+ const projectName=await page.locator('.project-title').textContent();
+ await page.reload();
+ await page.locator('.project-card').filter({hasText:projectName!}).first().click();
+ await expect(page.locator('.clip.title')).toContainText('A new beginning');
+ await page.getByRole('button',{name:'Build preview',exact:true}).click();
+ await expect(page.locator('video')).toHaveAttribute('src',/api\/assets/,{timeout:90000});
+ await page.locator('video').evaluate(async(video:HTMLVideoElement)=>{await video.play();});
+ await expect.poll(()=>page.locator('video').evaluate((v:HTMLVideoElement)=>v.currentTime)).toBeGreaterThan(.2);
+ await page.locator('video').evaluate((v:HTMLVideoElement)=>{v.pause();v.currentTime=2;});
+ await expect.poll(()=>page.locator('video').evaluate((v:HTMLVideoElement)=>v.currentTime)).toBeGreaterThan(1.9);
+ await page.getByRole('button',{name:'Export ↗',exact:true}).click();
+ await expect(page.locator('.clip.placeholder')).toHaveCount(0);
+ const submitted=page.waitForResponse(r=>r.url().endsWith('/renders')&&r.request().method()==='POST');
+ await page.getByRole('button',{name:'Render final MP4'}).click();
+ const snapshot=await (await submitted).json();
+ const rendering=snapshot.jobs.at(-1);
+ const capturedRevision=rendering.inputs.revision;
+ await page.getByRole('button',{name:'＋ Title',exact:true}).click();
+ await expect(page.locator('.clip.title')).toHaveCount(2);
+ await expect(page.getByRole('link',{name:'Continue in OpenShot'})).toBeVisible({timeout:90000});
+ await expect(page.locator('.export-card')).toContainText(`Revision ${capturedRevision}`);
+ const final=await (await page.request.get(`/api/projects/${snapshot.id}`)).json();
+ expect(final.revision).toBeGreaterThan(capturedRevision);
+ expect(final.jobs.find((j:{id:string})=>j.id===rendering.id).inputs.revision).toBe(capturedRevision);
+ await page.screenshot({path:'test-results/editor.png',fullPage:true});
+ expect(errors).toEqual([]);
+});
