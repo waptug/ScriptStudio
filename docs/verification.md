@@ -1,5 +1,20 @@
 # Verification evidence
 
+## Matching SVG & ICO brand assets
+
+Verified locally on 2026-09-16. The original lime-green slanted S mark is now a
+font-independent SVG used in dashboard, editor, Admin, and About headers. Browser
+icons use the same SVG with an ICO fallback; About offers downloads of both assets.
+
+- Inspected the rasterized mark and deployed About header visually. Checked the
+  ICO directory and PNG dimensions for all seven 32-bit frames: 16, 24, 32, 48,
+  64, 128, and 256 pixels. `node scripts/generate_icon.mjs` regenerates the ICO.
+- Live Chromium check confirmed the SVG decodes, both favicon declarations exist,
+  asset MIME types are correct, and both downloads complete with their filenames.
+- Frontend build, **44 backend tests (11.48 seconds)**, PostgreSQL concurrency
+  checks, and **4 Chromium tests (27.4 seconds)** passed. Rebuilt and deployed the
+  local Compose stack successfully. No new dependencies or paid calls were used.
+
 ## About this project & attribution
 
 Verified locally on 2026-09-16. Dashboard and editor buttons open foundation

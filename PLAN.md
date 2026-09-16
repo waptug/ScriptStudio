@@ -46,6 +46,12 @@ has since been verified live, as recorded below.
 - [x] Verify browser navigation, notices, downloads, mobile layout, and deploy
   locally (44 backend tests and 4 Chromium tests passed).
 
+## Matching logo assets
+
+- [x] Create a path-based SVG and matching multi-resolution ICO, use the mark in
+  all application headers and browser favicons, and add About-page downloads.
+- [x] Verify SVG rendering, ICO frames, MIME types, and downloads; deploy locally.
+
 ## Decisions
 
 Python/FastAPI services and Celery workers use PostgreSQL as authority. Redis only

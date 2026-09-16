@@ -175,4 +175,10 @@ TLS, CSRF protection, and upload/rate limits appropriate to your deployment.
 
 ## License
 
+The matching vector mark is in `frontend/public/logo.svg`; the multi-resolution
+Windows/browser icon is `frontend/public/favicon.ico` (16–256 pixels). Both are
+available to download from **About this project**. The SVG uses paths with no font
+dependency. After editing it, run `node scripts/generate_icon.mjs` to rebuild the
+ICO using the frontend's existing Playwright/Chromium installation.
+
 GPL-3.0-or-later. See [LICENSE](LICENSE) and [third-party notices](NOTICE.md).

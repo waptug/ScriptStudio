@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">ScriptStudio</title>
+  <desc id="desc">A dark S on a lime-green, forward-slanted tile.</desc>
+  <path fill="#b9f17b" d="M17 5h38c3.4 0 5.5 2.6 5 6L53 53c-.6 3.5-3 6-6.5 6h-38c-3.4 0-5.5-2.6-5-6l7-42c.6-3.5 3-6 6.5-6Z"/>
+  <path stroke="#22301a" stroke-width="7" stroke-linecap="round" d="M44 20c-3-2.5-6.4-3.5-11-3.5-6.5 0-11 3.2-11 8 0 9 19 5.5 19 14.5 0 5-5 8.5-12 8.5-4.8 0-9-1.4-12-4.5"/>
+</svg>

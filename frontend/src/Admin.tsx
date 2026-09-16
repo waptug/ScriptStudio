@@ -34,7 +34,7 @@ export function Admin({onClose}:{onClose:()=>void}) {
     setBusy(true);setError('');setNotice('');
     try{await action();}catch(e){setError((e as Error).message);}finally{setBusy(false);}
   }
-  return <div className="dashboard admin"><header><strong className="brand">ScriptStudio · Admin</strong><span className="spacer"/><button onClick={onClose}>Back to workspace</button></header>
+  return <div className="dashboard admin"><header><strong className="brand"><img className="brand-logo" src="/logo.svg" alt="" width="32" height="32"/>ScriptStudio · Admin</strong><span className="spacer"/><button onClick={onClose}>Back to workspace</button></header>
     <main><h1>Models & credentials</h1><p>Choose the models used by each workflow. Changes apply to new requests; queued generation jobs keep their captured model.</p>
       {error&&<p role="alert" className="error">{error}</p>}{notice&&<p role="status" className="note">{notice}</p>}
       {config&&<fieldset disabled={busy}>
