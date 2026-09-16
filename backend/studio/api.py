@@ -14,6 +14,7 @@ from .schemas import CreateProject, Edit, Settings, Storyboard, RenderRequest, T
 from .planner import LocalScriptPlanner, HttpScriptPlanner, OllamaScriptPlanner
 from .script_writer import ScriptBrief, ScriptWriter
 from .configuration import setting, ConfigurationService, AdminUpdate, paid_permissions
+from .export_names import export_filename
 from .timeline import TimelineService, Conflict
 from .coordinator import GenerationCoordinator
 from .storage import LocalStorage, AssetRepository
@@ -302,7 +303,7 @@ def render(project_id: str, payload: RenderRequest):
     with transaction() as session:
         project=project_lock(session,project_id)
         RenderService().validate(session,project_id,Timeline.model_validate(project.timeline),payload.draft)
-        inputs={**payload.model_dump(),'timeline':project.timeline,'settings':project.settings,'revision':project.revision}
+        inputs={**payload.model_dump(),'timeline':project.timeline,'settings':project.settings,'revision':project.revision,'project_name':project.name}
         job=Job(id=uid(),project_id=project_id,kind='render',provider='ffmpeg',model='h264-aac',state='queued',
                 fingerprint=hashlib.sha256(json.dumps(inputs,sort_keys=True).encode()).hexdigest(),inputs=inputs,estimated_cost=0)
         session.add(job)
@@ -316,7 +317,19 @@ def subtitles(job_id: str,extension: str):
     with Session() as session:
         job=session.get(Job,job_id)
         if not job or job.state!='ready' or extension not in job.result: raise HTTPException(404,'Render subtitles not ready')
-        return FileResponse(LocalStorage().path(job.result[extension]),filename=f'captions.{extension}')
+        return FileResponse(LocalStorage().path(job.result[extension]),filename=export_filename(session,job,extension))
+
+
+@app.get('/api/jobs/{job_id}/video')
+def export_video(job_id: str):
+    with Session() as session:
+        job=session.get(Job,job_id)
+        if not job or job.kind!='render' or job.state!='ready' or not job.asset_id:
+            raise HTTPException(404,'Render video not ready')
+        asset=session.get(Asset,job.asset_id)
+        if not asset or asset.project_id!=job.project_id:
+            raise HTTPException(404,'Render video not available')
+        return FileResponse(LocalStorage().path(asset.path),filename=export_filename(session,job,'mp4'))
 
 
 @app.post('/api/jobs/{job_id}/{action}')
@@ -382,7 +395,7 @@ def openshot_bundle(job_id: str):
         job=session.get(Job,job_id)
         if not job or job.state!='ready' or not job.result.get('openshot_bundle'):
             raise HTTPException(404,'Complete a final render before downloading its OpenShot project')
-        return FileResponse(LocalStorage().path(job.result['openshot_bundle']),filename='ScriptStudio-OpenShot.zip')
+        return FileResponse(LocalStorage().path(job.result['openshot_bundle']),filename=export_filename(session,job,'zip'))
 
 
 class RecoveredAsset(BaseModel):

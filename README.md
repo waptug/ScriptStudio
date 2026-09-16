@@ -72,6 +72,11 @@ See [Admin configuration](docs/admin.md) for credential storage and setup detail
    permits visibly labeled visual placeholders. Download MP4, SRT, WebVTT, or the
    **Continue in OpenShot** project bundle. Rendering uses an immutable revision.
 
+Export downloads use `Project name_YYYY-MM-DD_HH-MM-SSZ` with the appropriate
+`.mp4`, `.zip`, `.srt`, or `.vtt` extension. The timestamp is the render creation
+time in UTC. New renders capture the project name; older renders use its current
+name. Filename-unsafe characters are replaced and long names are shortened.
+
 Mock mode uses eSpeak speech, clearly labeled synthetic footage, and a locally
 synthesized instrumental bed. It does not claim to be live AI generation. Estimated
 mock word timings are labeled; ElevenLabs alignment is retained when available.

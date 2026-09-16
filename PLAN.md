@@ -30,6 +30,13 @@ has since been verified live, as recorded below.
 - [x] Verify browser controls and finish local deployment (3 Chromium tests passed;
   rebuilt Compose stack verified at localhost:8088 with all paid permissions off).
 
+## Export download names
+
+- [x] Use a safe project name and UTC render creation timestamp for MP4, OpenShot
+  ZIP, SRT, and WebVTT downloads; capture names for new renders.
+- [x] Verify all four download filenames in Chromium and deploy locally;
+  frontend build, backend coverage, PostgreSQL checks, and 3 browser tests passed.
+
 ## Decisions
 
 Python/FastAPI services and Celery workers use PostgreSQL as authority. Redis only

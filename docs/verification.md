@@ -1,5 +1,22 @@
 # Verification evidence
 
+## Export download names
+
+Verified locally on 2026-09-16. MP4, OpenShot ZIP, SRT, and WebVTT downloads
+share a safe project name and UTC render creation timestamp. New renders capture
+the project name; older renders fall back to the current name.
+
+- Backend suite: 43 existing tests passed. The new download test initially failed
+  because its legacy-name assertion did not decode URL-encoded spaces; after
+  fixing the assertion, the new test passed. It checks all four response filenames,
+  Unicode and unsafe characters, captured names after renaming, old exports, and
+  unchanged inline media byte-range responses.
+- Frontend production build and PostgreSQL concurrency checks passed.
+- Chromium: **3 passed in 27.8 seconds**, including actual downloads of all four
+  formats with matching suggested filenames and no download failures.
+- Rebuilt and deployed using `docker compose up -d --build`. The local health
+  endpoint returned `status: ok` with paid generation disabled.
+
 ## Paid generation controls
 
 Verified locally on 2026-09-16 using the current source and rebuilt Compose images.

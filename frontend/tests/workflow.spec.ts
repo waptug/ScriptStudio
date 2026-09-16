@@ -45,6 +45,14 @@ test('create, plan, produce, edit, reload, preview and export',async({page})=>{
  const final=await (await page.request.get(`/api/projects/${snapshot.id}`)).json();
  expect(final.revision).toBeGreaterThan(capturedRevision);
  expect(final.jobs.find((j:{id:string})=>j.id===rendering.id).inputs.revision).toBe(capturedRevision);
+ const stamp=new Date(rendering.created*1000).toISOString().slice(0,19).replace('T','_').replace(/:/g,'-')+'Z';
+ for(const [label,extension] of [['Download MP4','mp4'],['Continue in OpenShot','zip'],['SRT subtitles','srt'],['WebVTT','vtt']]){
+   const pending=page.waitForEvent('download');
+   await page.getByRole('link',{name:label}).click();
+   const download=await pending;
+   expect(download.suggestedFilename()).toBe(`${projectName}_${stamp}.${extension}`);
+   expect(await download.failure()).toBeNull();
+ }
  await page.screenshot({path:'test-results/editor.png',fullPage:true});
  expect(errors).toEqual([]);
 });
