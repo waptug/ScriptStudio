@@ -220,3 +220,16 @@ dependency. After editing it, run `node scripts/generate_icon.mjs` to rebuild th
 ICO using the frontend's existing Playwright/Chromium installation.
 
 GPL-3.0-or-later. See [LICENSE](LICENSE) and [third-party notices](NOTICE.md).
+
+### Automatic Ollama setup
+
+On opening the dashboard or Admin, ScriptStudio checks the saved Ollama URL,
+`OLLAMA_HOST` (including the Windows user environment), loopback port 11434, and
+the Docker host address in container installations. A reachable server is verified
+using `/api/tags`; its URL is saved automatically only if no URL is configured.
+Existing URLs are preserved, with **Use detected URL** available in Admin.
+Installed local models populate the model choices; choose writing/planning models
+and save. Discovery never generates content, downloads models, or calls cloud AI.
+If Ollama is unreachable, the setup notice links to the official installer and
+asks you to open Ollama and retry. If it has no local models, the notice asks you
+to download one in Ollama. Manual writing and mock production remain available.

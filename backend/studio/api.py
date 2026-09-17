@@ -68,16 +68,15 @@ class OllamaModelsRequest(BaseModel):
 
 @app.post('/api/admin/ollama-models')
 def ollama_models(payload: OllamaModelsRequest):
-    import httpx
-    from .local_llm import LocalOllama
-    client = LocalOllama(url=payload.url, model='local-model-discovery')
-    try:
-        response = httpx.get(client.url + '/api/tags', timeout=10)
-        response.raise_for_status()
-        models = response.json()['models']
-        return {'models': [m['name'] for m in models if isinstance(m.get('name'), str) and 'cloud' not in m['name'].lower()]}
-    except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
-        raise ValueError('Cannot list local models. Check the Ollama URL and Docker connectivity.') from exc
+    from .ollama_discovery import local_models
+    return {'models': local_models(payload.url, timeout=10)}
+
+
+@app.post('/api/admin/ollama-discover')
+def ollama_discover():
+    from .ollama_discovery import discover
+    return discover()
+
 
 @app.exception_handler(SubmissionUnknown)
 @app.exception_handler(RateLimited)

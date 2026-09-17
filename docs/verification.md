@@ -1,5 +1,20 @@
 # Verification evidence
 
+## Automatic host Ollama discovery
+
+The backend suite passes 51 tests, including malformed host environment handling, discovery persistence, preserving a
+manual URL, rejecting public hosts and invalid model-list responses, custom ports,
+and filtering cloud models. All 10 browser tests pass, including automatic URL
+population, installed-model options, missing-server install guidance, and retry
+against an empty model list. PostgreSQL concurrency checks pass.
+
+A real read-only probe from the container installation found the host Ollama
+server and its three local models. Native Windows IPv4 loopback was unreachable, but discovery found the same three
+models through **http://[::1]:11434** and verified automatic URL persistence.
+The updated EXE passed **50 backend tests (13.56 seconds)** and **10 Windows
+Chrome tests (28.9 seconds)**, including unavailable/empty-server UI fixtures. Discovery only calls
+`/api/tags`; no model download or generation is performed.
+
 ## Native standalone Windows package
 
 Verified on 2026-09-16 using the actual Windows x64 EXE and its extracted native

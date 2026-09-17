@@ -24,7 +24,7 @@ static class Program {
  [STAThread] static int Main(string[] args) {
   Application.EnableVisualStyles();
   bool owned;
-  using(var mutex=new Mutex(true,"Local\\ScriptStudio.NativeLauncher",out owned)) {
+  using(var mutex=new Mutex(true,"Local\\ScriptStudio.NativeLauncher"+(args.Length>0?".Checks":""),out owned)) {
    if(!owned) { MessageBox.Show("ScriptStudio is already running. Use its launcher window."); return 2; }
    try {
     if(args.Length>0) {

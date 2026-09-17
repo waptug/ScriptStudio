@@ -107,3 +107,11 @@ audio, original sources, subtitles, and ScriptStudio's revision snapshot.
 
 No paid provider calls are part of native acceptance. Clean Windows machine and
 complete third-party corresponding-source redistribution audits are not claimed.
+
+## Host Ollama discovery
+
+- [x] Detect local Ollama with private-address validation and model-list probes.
+- [x] Atomically populate an empty URL while preserving manual configuration.
+- [x] Show install/start, retry, and no-local-model guidance on dashboard and Admin.
+- [x] Backend discovery and regression tests: 51 passed; PostgreSQL concurrency passed.
+- [x] 10 browser tests and 50 native backend tests passed. Real Windows discovery found IPv6 loopback and persisted its URL.

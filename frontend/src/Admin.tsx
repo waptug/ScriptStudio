@@ -1,3 +1,4 @@
+import {discoverOllama,OllamaGuidance,type OllamaDiscovery} from './OllamaSetup';
 import {ThemeToggle} from './ThemeToggle';
 import {useEffect, useState} from 'react';
 
@@ -23,6 +24,7 @@ export function Admin({onClose}:{onClose:()=>void}) {
   const [credentials,setCredentials]=useState<Record<string,string>>({});
   const [clear,setClear]=useState<string[]>([]);
   const [models,setModels]=useState<string[]>([]);
+  const [discovery,setDiscovery]=useState<OllamaDiscovery|null>(null);
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   async function request(path:string,method='GET',body?:unknown) {
     const response=await fetch('/api/admin/'+path,{method,headers:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
@@ -30,7 +32,11 @@ export function Admin({onClose}:{onClose:()=>void}) {
     if(!response.ok)throw Error(result.detail||'Admin request failed');
     return result;
   }
-  useEffect(()=>{request('settings').then(setConfig).catch(e=>setError(e.message));},[]);
+  async function detect(){
+    const found=await discoverOllama();setDiscovery(found);setModels(found.models);
+    setConfig(current=>current&&({...current,values:{...current.values,OLLAMA_URL:current.values.OLLAMA_URL||found.configured_url}}));
+  }
+  useEffect(()=>{void run(async()=>{setConfig(await request('settings'));await detect();});},[]);
   async function run(action:()=>Promise<void>) {
     setBusy(true);setError('');setNotice('');
     try{await action();}catch(e){setError((e as Error).message);}finally{setBusy(false);}
@@ -49,7 +55,10 @@ export function Admin({onClose}:{onClose:()=>void}) {
           <p className="muted">Changes take effect when you save. Turning off blocks queued requests before submission. Already-submitted jobs can finish, and charges already incurred are not reversed. Local models, mock generation, imports, previews, and exports stay available.</p>
         </section>
         <section className="admin-section"><h2>Writing & planning · Local AI</h2>
-          <label>{labels.OLLAMA_URL}<input value={config.values.OLLAMA_URL} placeholder="http://host.docker.internal:11434" onChange={e=>setConfig({...config,values:{...config.values,OLLAMA_URL:e.target.value}})}/></label>
+          {discovery&&<p role={discovery.status==='unavailable'?'alert':undefined} aria-live="polite" className="note"><OllamaGuidance result={discovery}/></p>}
+          <button onClick={()=>void run(detect)}>Find Ollama on this host</button>
+          {discovery?.status==='found'&&!discovery.saved&&<button onClick={()=>setConfig({...config,values:{...config.values,OLLAMA_URL:discovery.url}})}>Use detected URL</button>}
+          <label>{labels.OLLAMA_URL}<input value={config.values.OLLAMA_URL} placeholder="http://127.0.0.1:11434" onChange={e=>setConfig({...config,values:{...config.values,OLLAMA_URL:e.target.value}})}/></label>
           <button disabled={!config.values.OLLAMA_URL} onClick={()=>void run(async()=>{
             const result=await request('ollama-models','POST',{url:config.values.OLLAMA_URL});setModels(result.models);
             setNotice(`Found ${result.models.length} installed local models. Choose one below and save.`);
