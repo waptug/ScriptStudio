@@ -12,7 +12,7 @@ parser.add_argument('--repo', required=True)
 args=parser.parse_args()
 root=Path(sys.executable).resolve().parent.parent
 repo=Path(args.repo)
-data=Path(os.environ['LOCALAPPDATA'])/'ScriptStudioNative/test-data'
+data=Path(os.environ['SCRIPTSTUDIO_TEST_DATA'])
 config=json.loads((data/'runtime.json').read_text())
 sys.path.insert(0,str(root/'backend'))
 os.environ['DATABASE_URL']=f"postgresql+psycopg://studio:{config['password']}@127.0.0.1:{config['db_port']}/scriptstudio"

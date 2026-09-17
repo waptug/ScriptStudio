@@ -1,5 +1,14 @@
 # Verification evidence
 
+## Portable Windows storage and disk-space checks
+
+The native extractor passes valid, corrupt, traversal, absolute-drive path,
+missing-file, and insufficient-space fixtures on E:. The oversized fixture is
+rejected with required/available capacity and exit code 3 before creating a
+storage folder. Native C# checks pass executable-relative paths, child-process
+scratch/cache isolation, exact free-space boundary handling, and bounded ZIP
+stream reads. Frontend build passes. Full packaged runtime validation follows.
+
 ## Script writer activity panel
 
 Frontend build, all 10 browser tests (30.8 seconds), 51 backend tests, and

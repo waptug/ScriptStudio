@@ -121,3 +121,11 @@ complete third-party corresponding-source redistribution audits are not claimed.
 - [x] Show pending requests with a spinner, indeterminate bar, and elapsed time.
 - [x] Report completion and errors while preserving manual text and prior drafts.
 - [x] Respect reduced motion and announce status without announcing each timer tick.
+
+## Portable native storage
+
+- [x] Resolve storage from the EXE folder; isolate child temporary/cache paths.
+- [x] Check expanded package size plus 2 GiB working reserve on the destination volume.
+- [x] Extract directly from the embedded ZIP; report insufficient space and close gracefully.
+- [x] Keep the browser profile/download defaults portable; identify legacy project data.
+- [ ] Validate native extraction, low-space refusal, and Windows app workflows.

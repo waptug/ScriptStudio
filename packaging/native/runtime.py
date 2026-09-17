@@ -8,6 +8,7 @@ import secrets
 import socket
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 
@@ -26,6 +27,19 @@ def main():
     root = Path(__file__).resolve().parent
     data = Path(args.data).resolve()
     data.mkdir(parents=True, exist_ok=True)
+    # Also enforce portable scratch/cache paths when the supervisor is started directly.
+    temp = data / 'temp'
+    temp.mkdir(exist_ok=True)
+    profile = data / 'profile'
+    local = profile / 'AppData/Local'
+    roaming = profile / 'AppData/Roaming'
+    local.mkdir(parents=True, exist_ok=True)
+    roaming.mkdir(parents=True, exist_ok=True)
+    os.environ.update(TEMP=str(temp), TMP=str(temp), TMPDIR=str(temp),
+        USERPROFILE=str(profile), HOME=str(profile), LOCALAPPDATA=str(local), APPDATA=str(roaming),
+        XDG_CACHE_HOME=str(data / 'cache'), PYTHONPYCACHEPREFIX=str(data / 'cache/python'))
+    tempfile.tempdir = str(temp)
+    sys.pycache_prefix = str(data / 'cache/python')
     # Windows denies a second supervisor access to this byte lock.
     sys.path.insert(0, str(root / 'backend'))
     from studio.platform_runtime import exclusive_file_lock

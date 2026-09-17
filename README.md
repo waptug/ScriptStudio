@@ -39,7 +39,7 @@ It bundles Windows Python, PostgreSQL, OpenShot, FFmpeg, offline narration, and
 the browser interface. Docker, WSL, Redis, installed Python, and Node are not
 required to run it. Start studio from the launcher and keep that window open.
 Closing it drains active work and stops its services. Data lives under
-`%LOCALAPPDATA%\ScriptStudioNative\data`, separately from the Docker installation.
+`ScriptStudioNative\data` beside the EXE, separately from the Docker installation.
 
 See [native packaging, operation, and build instructions](packaging/native/README.md)
 and [validation evidence](docs/verification.md). The launcher uses the .NET
@@ -238,3 +238,27 @@ The AI script writer shows an activity panel while a draft request is pending, w
 a spinner, an indeterminate progress bar, and elapsed waiting time. It reports
 success or failure without replacing your saved script. Elapsed time is not a
 model completion estimate; internal model reasoning is not displayed.
+
+### Portable Windows storage and free space
+
+The native launcher resolves its EXE folder, independently of the current working
+directory. Runtime packages, PostgreSQL, projects, logs, temporary files, caches,
+and the dedicated Edge/Chrome browser profile stay in `ScriptStudioNative` beside
+the EXE. Browser downloads default to `ScriptStudioNative/downloads`. Move the
+EXE and that folder together while the launcher is closed. The browser profile
+is separate from your usual browser; Windows and separately installed Ollama
+remain responsible for their own system files and model storage.
+
+Before extraction, the launcher checks free space on the actual destination
+volume for the expanded archive (plus filesystem overhead) and 2 GiB of working
+space. Cached launches require 2 GiB free. It reads the ZIP directly from the
+EXE, without creating a second compressed copy. Insufficient space shows required
+and available space and closes the launcher after acknowledgement, before any
+services start. The 2 GiB reserve is a startup minimum, not an estimate of space
+needed for arbitrary future video projects. Use a writable local folder.
+
+Older versions stored projects in `%LOCALAPPDATA%\ScriptStudioNative\data`.
+To retain those projects, stop and close the old launcher, then move that complete
+`data` directory into the new `ScriptStudioNative` folder **before first start**.
+Do not merge two database directories. The launcher identifies legacy data but
+never copies a potentially running database or deletes existing projects.

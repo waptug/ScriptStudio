@@ -1,6 +1,11 @@
-param([string]$Repo, [string]$Action = 'browser')
+param([string]$Repo, [string]$Action = 'browser', [string]$Exe)
 $ErrorActionPreference = 'Stop'
-$data = Join-Path $env:LOCALAPPDATA 'ScriptStudioNative\test-data'
+if (-not $Exe) {$Exe = Join-Path $Repo 'artifacts\native\ScriptStudio-Native-Windows-x64.exe'}
+$data = Join-Path (Split-Path -Parent $Exe) 'ScriptStudioNative\test-data'
+$env:SCRIPTSTUDIO_TEST_DATA = $data
+$env:TEMP = Join-Path $data 'temp'
+$env:TMP = $env:TEMP
+New-Item -ItemType Directory -Force $env:TEMP | Out-Null
 $ready = Get-Content (Join-Path $data 'ready.json') | ConvertFrom-Json
 $env:SCRIPTSTUDIO_URL = $ready.url
 $env:SCRIPTSTUDIO_BROWSER = 'C:\Program Files\Google\Chrome\Application\chrome.exe'

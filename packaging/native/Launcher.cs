@@ -15,12 +15,15 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("Standalone native Windows script-to-video studio")]
 [assembly: AssemblyVersion("0.2.0.0")]
 static class Program {
- public static readonly string Root=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"ScriptStudioNative");
+ public static readonly string LaunchDirectory=Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+ public static readonly string Root=Path.Combine(LaunchDirectory,"ScriptStudioNative");
+ public const long WorkingReserve=2L*1024*1024*1024;
  public static string Data=Path.Combine(Root,"data");
  public static Action<string> Log=delegate(string s){};
  public static Process Backend;
  public static NativeJob Job;
  public static string Url;
+ static bool browserStarted;
  [STAThread] static int Main(string[] args) {
   Application.EnableVisualStyles();
   bool owned;
@@ -43,26 +46,32 @@ static class Program {
       Data=Path.Combine(Root,"test-data");
       Directory.CreateDirectory(Data);
       Log=delegate(string s){File.AppendAllText(Path.Combine(Data,"launcher.log"),s+Environment.NewLine);};
-      Start(); Backend.WaitForExit(); return Backend.ExitCode;
+      Start(); if(args.Length>1&&args[1]=="--open-browser")OpenStudio(); Backend.WaitForExit(); return Backend.ExitCode;
      }
      throw new Exception("Unknown argument");
     }
     Application.Run(new Launcher()); return 0;
-   } catch(Exception e) { Log(e.ToString()); if(args.Length==0)MessageBox.Show(e.Message,"ScriptStudio");return 1; }
+   } catch(Exception e) { Log(e.ToString()); Console.Error.WriteLine(e.Message); if(args.Length==0)MessageBox.Show(e.Message,"ScriptStudio");return e is DiskSpaceException?3:1; }
    finally { if(Job!=null)Job.Dispose(); }
   }
  }
  public static void Start(int port=0) {
+  try {StartBackend(port);} catch {if(Job!=null){Job.Dispose();Job=null;}throw;}
+ }
+ static void StartBackend(int port) {
   string package=Extract();
+  CheckSpace(WorkingReserve);
   Directory.CreateDirectory(Data);
   string ready=Path.Combine(Data,"ready.json");
   if(File.Exists(ready))File.Delete(ready);
+  browserStarted=false;
   Log("Starting native PostgreSQL, API, and job worker…");
   Job=new NativeJob();
   var info=new ProcessStartInfo(Path.Combine(package,"python","python.exe"),
    "-X utf8 "+Quote(Path.Combine(package,"runtime.py"))+" --data "+Quote(Data)+" --port "+port) {
     UseShellExecute=false,CreateNoWindow=true,WorkingDirectory=package,RedirectStandardOutput=true,RedirectStandardError=true
    };
+  ConfigureEnvironment(info);
   Backend=Process.Start(info); Job.Add(Backend);
   Backend.OutputDataReceived+=(s,e)=>{if(e.Data!=null)Log(e.Data);};
   Backend.ErrorDataReceived+=(s,e)=>{if(e.Data!=null)Log(e.Data);};
@@ -84,9 +93,60 @@ static class Program {
   Backend.WaitForExit();
   Job.Dispose();Job=null;Log("Stopped. Projects and media are saved.");
  }
+    [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+    static extern bool GetDiskFreeSpaceEx(string path, out ulong available, out ulong total, out ulong free);
+    public static void CheckSpace(long required) {
+        ulong available,total,free;
+        if(!GetDiskFreeSpaceEx(LaunchDirectory,out available,out total,out free))
+            throw new IOException("Cannot check free space in " + LaunchDirectory + ". Close the launcher and move the EXE to a writable local folder.");
+        RequireSpace(required,(long)Math.Min(available,(ulong)long.MaxValue));
+    }
+    public static void RequireSpace(long required,long available) {
+        if(available<required) throw new DiskSpaceException(
+            "Not enough free disk space in " + LaunchDirectory + ".\r\n\r\n" +
+            "Required: " + (required/1073741824.0).ToString("F2") + " GiB (including 2 GiB working space).\r\n" +
+            "Available: " + (available/1073741824.0).ToString("F2") + " GiB.\r\n\r\n" +
+            "Close the launcher, free space on this drive, or move the EXE and its ScriptStudioNative folder together to a drive with more space. No services were started. Click OK to close the launcher.");
+    }
+    public static void ConfigureEnvironment(ProcessStartInfo info) {
+        string temp=Path.Combine(Data,"temp"), profile=Path.Combine(Data,"profile");
+        foreach(string directory in new[]{temp,profile,Path.Combine(profile,"AppData","Local"),Path.Combine(profile,"AppData","Roaming")})Directory.CreateDirectory(directory);
+        foreach(string key in new[]{"TEMP","TMP","TMPDIR"})info.EnvironmentVariables[key]=temp;
+        info.EnvironmentVariables["USERPROFILE"]=profile;
+        info.EnvironmentVariables["HOME"]=profile;
+        info.EnvironmentVariables["LOCALAPPDATA"]=Path.Combine(profile,"AppData","Local");
+        info.EnvironmentVariables["APPDATA"]=Path.Combine(profile,"AppData","Roaming");
+        info.EnvironmentVariables["PYTHONPYCACHEPREFIX"]=Path.Combine(Data,"cache","python");
+        info.EnvironmentVariables["XDG_CACHE_HOME"]=Path.Combine(Data,"cache");
+    }
+    public static void OpenStudio() {
+        if(Url==null||Backend==null||Backend.HasExited)return;
+        string browser=new[]{
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),"Microsoft","Edge","Application","msedge.exe"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),"Microsoft","Edge","Application","msedge.exe"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),"Google","Chrome","Application","chrome.exe"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Google","Chrome","Application","chrome.exe")
+        }.FirstOrDefault(File.Exists);
+        if(browser==null)throw new Exception("Microsoft Edge or Google Chrome is required to open the studio with a portable browser profile.");
+        string profile=Path.Combine(Data,"browser"), downloads=Path.Combine(Root,"downloads");
+        Directory.CreateDirectory(downloads);
+        string preferences=Path.Combine(profile,"Default","Preferences");
+        // Refresh absolute download paths after moving the portable folder, before launching its browser.
+        if(!browserStarted){
+            Directory.CreateDirectory(Path.GetDirectoryName(preferences));
+            var json=new System.Web.Script.Serialization.JavaScriptSerializer();
+            var settings=File.Exists(preferences)?json.Deserialize<System.Collections.Generic.Dictionary<string,object>>(File.ReadAllText(preferences)):new System.Collections.Generic.Dictionary<string,object>();
+            settings["download"]=new {default_directory=downloads,prompt_for_download=false,directory_upgrade=true};
+            File.WriteAllText(preferences,json.Serialize(settings));
+        }
+        var info=new ProcessStartInfo(browser,"--user-data-dir="+Quote(profile)+" --disk-cache-dir="+Quote(Path.Combine(Data,"cache","browser"))+
+            " --no-first-run --no-default-browser-check --disable-background-mode --app="+Quote(Url)) {UseShellExecute=false,WorkingDirectory=Root};
+        ConfigureEnvironment(info);
+        var browserProcess=Process.Start(info);
+        if(!browserStarted){Job.Add(browserProcess);browserStarted=true;}
+    }
     public static string Extract() {
-        string executable = Assembly.GetExecutingAssembly().Location;
-        using(var input = File.OpenRead(executable)) {
+        using(var input = File.OpenRead(Assembly.GetExecutingAssembly().Location)) {
             if(input.Length < 48) throw new Exception("Package footer is missing.");
             input.Position = input.Length - 48;
             var reader = new BinaryReader(input);
@@ -97,45 +157,43 @@ static class Program {
             string id = Hex(expected);
             string destination = Path.Combine(Root,"packages",id.Substring(0,16));
             string marker = Path.Combine(destination,"package.sha256");
-            // Always check the EXE's payload, including repeat launches.
-            input.Position = input.Length - 48 - length;
-            Directory.CreateDirectory(Path.Combine(Root,"packages"));
-            string temporary = Path.Combine(Root,"packages",Guid.NewGuid().ToString("N")+".zip");
-            try {
+            using(var payload=new PayloadStream(input,input.Length-48-length,length)) {
                 Log("Verifying bundled Windows runtimes…");
-                using(var output = File.Create(temporary))
-                using(var hash = SHA256.Create()) {
-                    var buffer = new byte[1024*1024];
-                    long remaining = length;
-                    while(remaining > 0) {
-                        int count = input.Read(buffer,0,(int)Math.Min(buffer.Length,remaining));
-                        if(count == 0) throw new Exception("Package is truncated.");
-                        output.Write(buffer,0,count); hash.TransformBlock(buffer,0,count,null,0); remaining -= count;
+                using(var hash=SHA256.Create())
+                    if(!hash.ComputeHash(payload).SequenceEqual(expected))throw new Exception("Package checksum failed. Obtain a fresh copy of the EXE.");
+                bool cached=File.Exists(marker) && File.ReadAllText(marker)==id;
+                payload.Position=0;
+                using(var archive=new ZipArchive(payload,ZipArchiveMode.Read,true)) {
+                    long required=WorkingReserve;
+                    foreach(var entry in archive.Entries) {
+                        string file=Path.GetFullPath(Path.Combine(destination,entry.FullName));
+                        if(!file.StartsWith(destination+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase) || entry.FullName.Contains(":"))
+                            throw new Exception("Unsafe package entry.");
+                        if(!cached)required=checked(required+entry.Length+4096);
                     }
-                    hash.TransformFinalBlock(new byte[0],0,0);
-                    if(!hash.Hash.SequenceEqual(expected)) throw new Exception("Package checksum failed. Obtain a fresh copy of the EXE.");
-                }
-                if(File.Exists(marker) && File.ReadAllText(marker) == id) return destination;
-                if(Directory.Exists(destination)) throw new Exception("Incomplete package directory exists: " + destination);
-                string staging = destination + ".staging-" + Guid.NewGuid().ToString("N");
-                Directory.CreateDirectory(staging);
-                try {
-                    using(var archive = ZipFile.OpenRead(temporary)) {
+                    CheckSpace(required); // No extraction or temporary ZIP is written before this check.
+                    if(cached)return destination;
+                    if(Directory.Exists(destination))throw new Exception("Incomplete package directory exists: "+destination);
+                    string staging=destination+".staging-"+Guid.NewGuid().ToString("N");
+                    Directory.CreateDirectory(staging);
+                    try {
                         foreach(var entry in archive.Entries) {
-                            string file = Path.GetFullPath(Path.Combine(staging,entry.FullName));
-                            if(!file.StartsWith(staging+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase) || entry.FullName.Contains(":"))
-                                throw new Exception("Unsafe package entry.");
+                            string file=Path.GetFullPath(Path.Combine(staging,entry.FullName));
+                            if(entry.Name.Length==0){Directory.CreateDirectory(file);continue;}
                             Directory.CreateDirectory(Path.GetDirectoryName(file));
-                            using(var source = entry.Open()) using(var target = File.Create(file)) source.CopyTo(target);
+                            using(var source=entry.Open())using(var target=File.Create(file))source.CopyTo(target);
                         }
+                        foreach(string name in new[]{"runtime.py","python/python.exe","postgres/bin/postgres.exe","openshot/MediaHost.exe","source.zip","LICENSE.txt","README.txt"})
+                            if(!File.Exists(Path.Combine(staging,name)))throw new Exception("Package is missing "+name);
+                        File.WriteAllText(Path.Combine(staging,"package.sha256"),id);
+                        Directory.Move(staging,destination);
+                    } catch {
+                        try {Directory.Delete(staging,true);}catch {} // Preserve the original failure, including a full disk.
+                        throw;
                     }
-                    foreach(string name in new[]{"runtime.py","python/python.exe","postgres/bin/postgres.exe","openshot/MediaHost.exe","source.zip","LICENSE.txt","README.txt"})
-                        if(!File.Exists(Path.Combine(staging,name))) throw new Exception("Package is missing " + name);
-                    File.WriteAllText(Path.Combine(staging,"package.sha256"),id);
-                    Directory.Move(staging,destination);
-                } catch { Directory.Delete(staging,true); throw; }
+                }
                 return destination;
-            } finally { if(File.Exists(temporary)) File.Delete(temporary); }
+            }
         }
     }
 
@@ -152,6 +210,19 @@ static class Program {
         }
         output.Append('\\',slashes*2); return output.Append('"').ToString();
     }
+}
+sealed class DiskSpaceException : IOException { public DiskSpaceException(string message):base(message){} }
+// Seekable view of the appended ZIP: avoids a second compressed copy on disk.
+sealed class PayloadStream : Stream {
+ readonly Stream source; readonly long offset,length; long position;
+ public PayloadStream(Stream source,long offset,long length){this.source=source;this.offset=offset;this.length=length;}
+ public override bool CanRead{get{return true;}} public override bool CanSeek{get{return true;}} public override bool CanWrite{get{return false;}}
+ public override long Length{get{return length;}}
+ public override long Position{get{return position;}set{Seek(value,SeekOrigin.Begin);}}
+ public override int Read(byte[] buffer,int start,int count){source.Position=offset+position;int read=source.Read(buffer,start,(int)Math.Min(count,length-position));position+=read;return read;}
+ public override long Seek(long value,SeekOrigin origin){long next=origin==SeekOrigin.Begin?value:origin==SeekOrigin.Current?position+value:length+value;if(next<0||next>length)throw new IOException("Invalid package seek");return position=next;}
+ public override void Flush(){} public override void SetLength(long value){throw new NotSupportedException();}
+ public override void Write(byte[] buffer,int start,int count){throw new NotSupportedException();}
 }
 // OS-owned process containment: closing/crashing the launcher leaves no service
 // orphan. PostgreSQL performs crash recovery if a hard process termination occurs.
@@ -190,15 +261,28 @@ class Launcher : Form {
   foreach(var button in new[]{stop,open,files}){button.BackColor=Color.LightGray;button.ForeColor=Color.FromArgb(20,25,32);}
   buttons.Controls.AddRange(new Control[]{start,stop,open,files});
   Controls.Add(log);Controls.Add(title);Controls.Add(buttons);
+  log.Text="Storage folder: "+Program.Root+Environment.NewLine;
+  string legacy=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"ScriptStudioNative","data");
+  if(!Directory.Exists(Program.Data)&&Directory.Exists(legacy))log.AppendText("Previous projects found at "+legacy+". To reuse them, close the old studio and move that complete data folder to "+Program.Data+" before starting."+Environment.NewLine);
   Program.Log=s=>{if(!IsDisposed&&IsHandleCreated)BeginInvoke((Action)(()=>log.AppendText(s+Environment.NewLine)));};
-  start.Click+=async(s,e)=>await Work(()=>{Program.Start();Process.Start(Program.Url);});
+  start.Click+=async(s,e)=>await Work(()=>{Program.Start();Program.OpenStudio();});
   stop.Click+=async(s,e)=>await Work(Program.Stop);
-  open.Click+=(s,e)=>{if(Program.Url!=null&&Program.Backend!=null&&!Program.Backend.HasExited)Process.Start(Program.Url);};
+  open.Click+=async(s,e)=>await Work(Program.OpenStudio);
   files.Click+=(s,e)=>{Directory.CreateDirectory(Program.Data);Process.Start("explorer.exe",Program.Data);};
   FormClosing+=async(s,e)=>{
    if(closing)return;e.Cancel=true;if(busy)return;
    await Work(Program.Stop);closing=true;Close();
   };
  }
- async Task Work(Action action){if(busy)return;busy=true;start.Enabled=false;stop.Enabled=false;try{await Task.Run(action);}catch(Exception e){Program.Log(e.Message);}finally{busy=false;start.Enabled=Program.Backend==null||Program.Backend.HasExited;stop.Enabled=!start.Enabled;}}
+ async Task Work(Action action){
+  if(busy)return;busy=true;start.Enabled=false;stop.Enabled=false;bool exit=false;
+  try{await Task.Run(action);}
+  catch(Exception e){
+   Program.Log(e.Message);
+   if(e is DiskSpaceException){MessageBox.Show(this,e.Message,"ScriptStudio · Insufficient disk space",MessageBoxButtons.OK,MessageBoxIcon.Warning);exit=true;}
+   else MessageBox.Show(this,e.Message+"\r\n\r\nStorage folder: "+Program.Root,"ScriptStudio could not complete the operation",MessageBoxButtons.OK,MessageBoxIcon.Error);
+  }
+  finally{busy=false;start.Enabled=Program.Backend==null||Program.Backend.HasExited;stop.Enabled=!start.Enabled;}
+  if(exit){closing=true;Close();}
+ }
 }
