@@ -7,7 +7,20 @@ missing-file, and insufficient-space fixtures on E:. The oversized fixture is
 rejected with required/available capacity and exit code 3 before creating a
 storage folder. Native C# checks pass executable-relative paths, child-process
 scratch/cache isolation, exact free-space boundary handling, and bounded ZIP
-stream reads. Frontend build passes. Full packaged runtime validation follows.
+stream reads. Frontend build passes.
+
+The complete EXE from `7b311c1` was copied to `E:\ScriptStudio\ScriptStudio.exe`,
+checksum-verified, and started through its actual launcher with `--serve-test
+--open-browser`. Extraction, native backend startup, and graceful shutdown pass.
+All **51 Windows backend tests (19.51 seconds)** and **10 Windows Chrome browser
+tests (29.0 seconds)** pass, including render/export. Native and Docker PostgreSQL
+concurrency checks pass; the Docker backend suite also passes all 51 tests.
+
+A live storage audit confirms that the backend executable, PostgreSQL data,
+generated media, temporary directory, Python bytecode cache, and dedicated Edge
+profile are under `E:\ScriptStudio\ScriptStudioNative`; the browser download default
+is its `downloads` subfolder. Existing C: project data was not modified or moved.
+The test instance was stopped after verification.
 
 ## Script writer activity panel
 

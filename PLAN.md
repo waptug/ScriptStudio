@@ -128,4 +128,4 @@ complete third-party corresponding-source redistribution audits are not claimed.
 - [x] Check expanded package size plus 2 GiB working reserve on the destination volume.
 - [x] Extract directly from the embedded ZIP; report insufficient space and close gracefully.
 - [x] Keep the browser profile/download defaults portable; identify legacy project data.
-- [ ] Validate native extraction, low-space refusal, and Windows app workflows.
+- [x] Validate native extraction, low-space refusal, and Windows app workflows (51 backend / 10 browser tests).

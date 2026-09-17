@@ -6,7 +6,7 @@ from pathlib import Path
 import struct
 import subprocess
 import zipfile
-from win import run, path
+from win import run, path as windows_path
 
 root=Path(__file__).resolve().parents[2]
 out=Path(os.environ.get('SCRIPTSTUDIO_EXTRACT_TEST_DIR', str(root/'artifacts/native/extraction-tests')))
@@ -16,7 +16,7 @@ run('/mnt/c/Windows/Microsoft.NET/Framework64/v4.0.30319/csc.exe',
     '/nologo','/target:exe','/platform:x64',
     '/reference:System.Windows.Forms.dll','/reference:System.Drawing.dll',
     '/reference:System.IO.Compression.dll','/reference:System.IO.Compression.FileSystem.dll',
-    '/reference:System.Web.Extensions.dll','/out:'+path(launcher),path(root/'packaging/native/Launcher.cs'))
+    '/reference:System.Web.Extensions.dll','/out:'+windows_path(launcher),windows_path(root/'packaging/native/Launcher.cs'))
 stub=launcher.read_bytes()
 required={p:'fixture' for p in ['runtime.py','python/python.exe','postgres/bin/postgres.exe',
     'openshot/MediaHost.exe','source.zip','LICENSE.txt','README.txt']}
@@ -68,7 +68,7 @@ run('/mnt/c/Windows/Microsoft.NET/Framework64/v4.0.30319/csc.exe',
     '/nologo','/target:exe','/platform:x64','/main:StorageChecks',
     '/reference:System.Windows.Forms.dll','/reference:System.Drawing.dll',
     '/reference:System.IO.Compression.dll','/reference:System.IO.Compression.FileSystem.dll',
-    '/reference:System.Web.Extensions.dll','/out:'+path(checks),
-    path(root/'packaging/native/Launcher.cs'),path(root/'packaging/native/StorageChecks.cs'))
+    '/reference:System.Web.Extensions.dll','/out:'+windows_path(checks),
+    windows_path(root/'packaging/native/Launcher.cs'),windows_path(root/'packaging/native/StorageChecks.cs'))
 checks.chmod(0o755)
 run(str(checks))

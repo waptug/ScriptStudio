@@ -14,6 +14,20 @@ if ($Action -eq 'browser') {
   & (Join-Path $Repo 'artifacts\native\node\node-v24.13.1-win-x64\node.exe') (Join-Path $Repo 'frontend\node_modules\@playwright\test\cli.js') test
   exit $LASTEXITCODE
 }
+if ($Action -eq 'storage') {
+  $root = Split-Path -Parent $data
+  if (-not (Get-Process -Id $ready.pid).Path.StartsWith($root)) {throw 'Backend is outside portable folder'}
+  foreach ($part in @('database','media','temp','cache\python','profile','browser\Default')) {
+    if (-not (Test-Path (Join-Path $data $part))) {throw ('Missing portable path: ' + $part)}
+  }
+  $prefs = Get-Content (Join-Path $data 'browser\Default\Preferences') | ConvertFrom-Json
+  if ($prefs.download.default_directory -ne (Join-Path $root 'downloads')) {throw 'Browser download path is not portable'}
+  $profile = Join-Path $data 'browser'
+  $browser = Get-CimInstance Win32_Process -Filter "Name='msedge.exe' OR Name='chrome.exe'" | Where-Object {$_.CommandLine -and $_.CommandLine.Contains($profile)}
+  if (-not $browser) {throw 'Portable browser profile was not launched'}
+  Write-Output 'PASS backend, database, media, temp, Python cache, browser profile and download default stay beside EXE'
+  exit 0
+}
 if ($Action -eq 'stop') {
   Set-Content -Path (Join-Path $data 'stop.request') -Value 'stop'
   exit 0
