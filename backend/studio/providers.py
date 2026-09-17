@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 import httpx
 from .storage import LocalStorage, run
+from .platform_runtime import mock_font_filter
 
 
 @dataclass(frozen=True)
@@ -79,7 +80,7 @@ class MockVideoProvider(VideoProvider):
         # Animated test footage has a visible MOCK label, no claim of AI imagery.
         run(['ffmpeg','-v','error','-y','-f','lavfi','-i',
              f"color=c=0x{color}:s=640x360:r=24:d={request['duration']}",
-             '-vf', "drawgrid=w=80:h=60:t=1:c=white@0.12,drawbox=x=40:y=140:w=560:h=80:color=black@0.4:t=fill,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf:text='MOCK FOOTAGE':fontcolor=white:fontsize=28:x=(w-tw)/2:y=(h-th)/2,drawbox=x=20:y=20:w=40:h=40:color=white@0.5:t=fill",
+             '-vf', f"drawgrid=w=80:h=60:t=1:c=white@0.12,drawbox=x=40:y=140:w=560:h=80:color=black@0.4:t=fill,drawtext=fontfile={mock_font_filter()}:text='MOCK FOOTAGE':fontcolor=white:fontsize=28:x=(w-tw)/2:y=(h-th)/2,drawbox=x=20:y=20:w=40:h=40:color=white@0.5:t=fill",
              '-an','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p',str(path)])
         return {'provider_id': job_id, 'local_path': str(path)}
 

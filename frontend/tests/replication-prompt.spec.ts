@@ -16,7 +16,8 @@ test('About displays, copies, and downloads the same complete goal prompt',async
   await expect(section.getByRole('textbox')).toHaveValue(prompt);
   await section.getByRole('button',{name:'Copy /goal prompt',exact:true}).click();
   await expect(section.getByRole('status')).toContainText('Goal prompt copied');
-  expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe(prompt);
+  // Windows clipboard text convention is CRLF; compare the complete text after newline normalization.
+  expect((await page.evaluate(()=>navigator.clipboard.readText())).replace(/\r\n/g,'\n')).toBe(prompt);
   const pending=page.waitForEvent('download');
   await section.getByRole('link',{name:'Download prompt (.txt)',exact:true}).click();
   const download=await pending;

@@ -65,7 +65,8 @@ def test_preview_export_duration_audio_and_immutable_snapshot(project_id):
         bundle=LocalStorage().path(meta['openshot_bundle'])
         extracted=bundle.parent/'relocated-native-project'
         with ZipFile(bundle) as archive:archive.extractall(extracted)
-        result=run(['/usr/bin/python3','/app/tools/verify_openshot.py',str(extracted/'ScriptStudio.osp')])
+        import os
+        result=run([os.getenv('OPENSHOT_PYTHON','/usr/bin/python3'),str(Path(__file__).resolve().parents[1]/'tools/verify_openshot.py'),str(extracted/'ScriptStudio.osp')])
         assert b'"rendered_frames": 3' in result
         assert probe(extracted/'native-verification.mp4')['streams'][0]['nb_frames']=='3'
 

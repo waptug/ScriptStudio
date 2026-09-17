@@ -3,7 +3,7 @@ import {ReplicationPrompt} from './ReplicationPrompt';
 import {useEffect, useRef, useState} from 'react';
 
 type Component = {name:string;version:string;group:string;license:string;url:string;role:string;evidence?:string;notice?:string};
-type Inventory = {scope:string;components:Component[]};
+type Inventory = {runtime?:string;scope:string;components:Component[]};
 let notices:Promise<Record<string,string>>|undefined;
 function LicenseNotice({id}:{id:string}) {
   const [text,setText]=useState(''),[error,setError]=useState('');
@@ -23,10 +23,10 @@ function LicenseNotice({id}:{id:string}) {
 }
 const foundations = [
   {name:'OpenShot',credit:'OpenShot developers & contributors',role:'The visual foundation: libopenshot composes frames, animates clips, and creates editable native project handoffs.',license:'libopenshot: LGPL-3.0-or-later · desktop editor: GPL-3.0-or-later',url:'https://www.openshot.org/libopenshot/'},
-  {name:'FFmpeg',credit:'The FFmpeg community',role:'Media inspection, normalization, audio mixing, and final video encoding.',license:'Installed Debian build: GPL-2.0-or-later, with component-specific notices below.',url:'https://ffmpeg.org/legal.html'},
+  {name:'FFmpeg',credit:'The FFmpeg community',role:'Media inspection, normalization, audio mixing, and final video encoding.',license:'GPL build; the installed package and component-specific notices are listed below.',url:'https://ffmpeg.org/legal.html'},
   {name:'React & TypeScript',credit:'Meta, Microsoft & open-source contributors',role:'The interactive editor, timeline controls, and typed browser interface. Vite builds the frontend.',license:'React & Vite: MIT · TypeScript: Apache-2.0',url:'https://github.com/facebook/react/blob/main/LICENSE'},
   {name:'Python & FastAPI',credit:'Python Software Foundation & Python package maintainers',role:'The API and services, with Pydantic validation, SQLAlchemy, Alembic, and Psycopg.',license:'Python: PSF-2.0 · FastAPI: MIT · package-specific terms below',url:'https://docs.python.org/3.12/license.html'},
-  {name:'PostgreSQL & Celery',credit:'PostgreSQL Global Development Group & Celery contributors',role:'Durable projects and job state, with workers for generation and rendering.',license:'PostgreSQL License · Celery: BSD-3-Clause',url:'https://www.postgresql.org/about/licence/'},
+  {name:'PostgreSQL & job workers',credit:'PostgreSQL Global Development Group & Celery contributors',role:'Durable projects and job state. Linux uses Celery; standalone Windows uses a native PostgreSQL polling worker.',license:'PostgreSQL License · Celery: BSD-3-Clause',url:'https://www.postgresql.org/about/licence/'},
   {name:'Qt, PyQt5 & eSpeak NG',credit:'Qt, Riverbank Computing & eSpeak NG contributors',role:'Native rendering support, text overlays, and local demo narration. DejaVu fonts supply the render typefaces.',license:'Qt: module-specific LGPL/GPL · PyQt5: GPL v3 distribution · eSpeak NG: GPL-3.0-or-later · fonts: see notices',url:'https://www.riverbankcomputing.com/software/pyqt/intro'},
 ];
 
@@ -63,8 +63,8 @@ export function About({onClose}:{onClose:()=>void}) {
       <section aria-labelledby="foundation-credits"><h2 id="foundation-credits">Foundation credits</h2><p>Thank you to the maintainers, designers, translators, testers, and contributors who make these tools possible.</p>
       <div className="foundation-grid">{foundations.map(f=><article className="foundation-card" key={f.name}><h3><a href={f.url} target="_blank" rel="noreferrer">{f.name} ↗</a></h3><small>{f.credit}</small><p>{f.role}</p><p className="foundation-license">{f.license}</p></article>)}</div></section>
       <section className="about-context" aria-labelledby="license-boundaries"><h2 id="license-boundaries">Other tools & license boundaries</h2>
-        <p><strong>Redis server 7.4.2</strong> runs separately for job wakeups and is source-available under <a href="https://redis.io/legal/licenses/" target="_blank" rel="noreferrer">RSALv2 or SSPLv1</a>. It is not listed here as an OSI-approved open-source release. The Python Redis client has its own MIT license.</p>
-        <p><strong>nginx, Debian, Alpine Linux, Node.js, and container tooling</strong> support delivery and development. Their packages, versions, and notices appear in the inventory below.</p>
+        {inventory?.runtime==='native-windows'?<p><strong>Standalone Windows runtime</strong> bundles Python, PostgreSQL, OpenShot, FFmpeg, and offline speech. A native worker polls durable PostgreSQL jobs. <a href="/credits/native-files.json" download>Download runtime file checksums</a>.</p>:<><p><strong>Redis server 7.4.2</strong> runs separately for job wakeups and is source-available under <a href="https://redis.io/legal/licenses/" target="_blank" rel="noreferrer">RSALv2 or SSPLv1</a>. It is not listed here as an OSI-approved open-source release. The Python Redis client has its own MIT license.</p>
+        <p><strong>nginx, Debian, Alpine Linux, Node.js, and container tooling</strong> support delivery and development. Their packages, versions, and notices appear in the inventory below.</p></>}
         <p><strong>Ollama and OpenShot desktop</strong> are optional external tools. Ollama software is MIT-licensed; model weights have their own licenses. Runway, ElevenLabs, and Suno are proprietary service integrations, not open-source dependencies; their account and content terms apply separately. Suno generation is not enabled.</p>
         <p>Project names and marks identify their respective owners. No affiliation or endorsement is implied.</p>
       </section>

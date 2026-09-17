@@ -1,10 +1,10 @@
 """Runtime workflow configuration; credentials are write-only through the API."""
-import fcntl
 import os
 from pathlib import Path
 from cryptography.fernet import Fernet, InvalidToken
 from pydantic import BaseModel, Field, ConfigDict, StrictBool
 from .db import AppSetting, Session, transaction
+from .platform_runtime import exclusive_file_lock
 
 DEFAULTS = {
     'OLLAMA_URL': '', 'OLLAMA_MODEL': '', 'SCRIPT_WRITER_MODEL': '',
@@ -53,8 +53,7 @@ def cipher(create=False):
     if create:
         # All containers share this volume. Serialize first-key creation so two
         # concurrent saves cannot encrypt with different master keys.
-        with open(folder / 'key.lock', 'a') as lock:
-            fcntl.flock(lock, fcntl.LOCK_EX)
+        with exclusive_file_lock(folder / 'key.lock'):
             if not path.exists():
                 with Session() as session:
                     if session.query(AppSetting).filter(AppSetting.key.in_(SECRETS), AppSetting.value != '').first():

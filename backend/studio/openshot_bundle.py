@@ -19,7 +19,8 @@ class OpenShotBundleService:
                 'output':str(folder/'bundle-project.json')}
         config_path=folder/'bundle-input.json'
         config_path.write_text(json.dumps(config))
-        run(['/usr/bin/python3',str(Path(__file__).with_name('openshot_bundle_runner.py')),str(config_path)])
+        from .platform_runtime import openshot_command
+        run(openshot_command('openshot_bundle_runner.py',config_path))
         document=json.loads((folder/'bundle-project.json').read_text())
         archive=folder/'ScriptStudio-OpenShot.zip'
         with ZipFile(archive.with_suffix('.partial'),'w',ZIP_STORED) as bundle:

@@ -1,6 +1,7 @@
 """One OpenShot compositor and FFmpeg audio graph implement preview and export."""
 from pathlib import Path
 import subprocess
+import os
 from .db import Asset
 from .schemas import Settings, Timeline
 from .storage import LocalStorage
@@ -96,7 +97,7 @@ class RenderService:
         graph.append('[1:a]'+''.join(f'[{label}]' for label in buses)+f'amix=inputs={len(buses)+1}:duration=first:normalize=0,alimiter=limit=0.95:level=0,atrim=duration={total}[audio]')
         graph_file = folder/'graph.txt'
         graph_file.write_text(';\n'.join(graph))
-        args += ['-filter_complex_script',str(graph_file),'-map',f'[{video}]','-map','[audio]',
+        args += [os.getenv('FFMPEG_FILTER_SCRIPT_OPTION','-filter_complex_script'),str(graph_file),'-map',f'[{video}]','-map','[audio]',
                  '-t',str(total),'-r',fps,'-c:v','libx264','-threads','2','-preset','ultrafast' if inputs.get('preview') else 'veryfast',
                  '-crf','27' if inputs.get('preview') else '20','-pix_fmt','yuv420p','-c:a','aac','-ar','48000',
                  '-movflags','+faststart','-progress','pipe:1',str(output)]

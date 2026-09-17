@@ -4,6 +4,7 @@ from pathlib import Path
 import subprocess
 from .db import Asset
 from .storage import run
+from .platform_runtime import openshot_command
 
 
 class OpenShotVisualService:
@@ -35,7 +36,7 @@ class OpenShotVisualService:
         config_path=folder/'openshot-input.json'
         config_path.write_text(json.dumps(config))
         with open(folder/'openshot.log','w') as log:
-            process=subprocess.Popen(['/usr/bin/python3',str(Path(__file__).with_name('openshot_runner.py')),str(config_path)],stdout=subprocess.PIPE,stderr=log,text=True)
+            process=subprocess.Popen(openshot_command('openshot_runner.py',config_path),stdout=subprocess.PIPE,stderr=log,text=True)
             try:
                 for line in process.stdout:
                     try:

@@ -95,3 +95,15 @@ serialization. Run its Debian Python bindings in a separate process to isolate
 native crashes and Python ABI differences. FFmpeg normalizes source coverage and
 mixes audio. Export a portable .osp handoff with editable visual clips, exact mixed
 audio, original sources, subtitles, and ScriptStudio's revision snapshot.
+
+## Native standalone Windows follow-up
+
+- [x] Bundle native PostgreSQL, Python API, OpenShot subprocess, FFmpeg, and speech.
+- [x] Replace Windows Celery/Redis with bounded PostgreSQL polling through the same coordinator.
+- [x] Add Windows credential-file locking and configurable media process boundaries.
+- [x] Create branded self-extracting launcher with per-user data, loopback binding, graceful shutdown and Windows process containment.
+- [x] Native backend acceptance: 45 tests passed, real media and portable OpenShot exports; PostgreSQL concurrency passed.
+- [x] Packaged Windows browser: 8 passed; restart preserved 9 projects; native extraction safety and launcher checks passed.
+
+No paid provider calls are part of native acceptance. Clean Windows machine and
+complete third-party corresponding-source redistribution audits are not claimed.

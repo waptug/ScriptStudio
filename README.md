@@ -32,7 +32,20 @@ docker compose down                # remove containers, preserve named volumes
 
 **Do not use `docker compose down -v` unless you intend to erase your projects.**
 
-## Windows EXE package
+## Standalone native Windows EXE
+
+The native package is `artifacts/native/ScriptStudio-Native-Windows-x64.exe`.
+It bundles Windows Python, PostgreSQL, OpenShot, FFmpeg, offline narration, and
+the browser interface. Docker, WSL, Redis, installed Python, and Node are not
+required to run it. Start studio from the launcher and keep that window open.
+Closing it drains active work and stops its services. Data lives under
+`%LOCALAPPDATA%\ScriptStudioNative\data`, separately from the Docker installation.
+
+See [native packaging, operation, and build instructions](packaging/native/README.md)
+and [validation evidence](docs/verification.md). The launcher uses the .NET
+Framework included with Windows 10/11; the EXE is unsigned.
+
+## Earlier Docker-based Windows EXE package
 
 Build an offline Windows application package with
 `python3 packaging/windows/build.py` after building the Compose images. Output:

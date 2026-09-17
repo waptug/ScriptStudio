@@ -6,7 +6,9 @@ test('About credits, searchable notices, downloads, and return to unsaved editor
   await expect(page.getByRole('heading',{name:'About this project',exact:true})).toBeFocused();
   await expect(page.getByRole('heading',{name:'Foundation credits'})).toBeVisible();
   await expect(page.getByText('GNU GPL version 3 or later', {exact:false})).toBeVisible();
-  await expect(page.getByText('RSALv2 or SSPLv1',{exact:true})).toBeVisible();
+  const inventory=await (await page.request.get('/credits/components.json')).json();
+  if(inventory.runtime==='native-windows')await expect(page.getByText('Standalone Windows runtime',{exact:true})).toBeVisible();
+  else await expect(page.getByText('RSALv2 or SSPLv1',{exact:true})).toBeVisible();
   await expect(page.getByRole('status')).toContainText('matching records');
   await page.getByRole('searchbox',{name:'Search components'}).fill('react');
   await page.getByLabel('Component group').selectOption('JavaScript');

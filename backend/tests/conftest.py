@@ -1,6 +1,8 @@
 import os
-os.environ['DATABASE_URL']='sqlite:////tmp/scriptstudio-tests.sqlite'
-os.environ['MEDIA_ROOT']='/tmp/scriptstudio-tests-media'
+from pathlib import Path
+import tempfile
+os.environ['DATABASE_URL']='sqlite:///'+str(Path(tempfile.gettempdir())/'scriptstudio-tests.sqlite')
+os.environ['MEDIA_ROOT']=str(Path(tempfile.gettempdir())/'scriptstudio-tests-media')
 os.environ['LIVE_GENERATION_ENABLED']='false'
 import pytest
 from studio.db import Base, engine, transaction, Project

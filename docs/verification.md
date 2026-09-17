@@ -1,6 +1,49 @@
 # Verification evidence
 
-## Windows offline application package
+## Native standalone Windows package
+
+Verified on 2026-09-16 using the actual Windows x64 EXE and its extracted native
+runtimes. The approximately 504 MiB package runs Windows Python 3.12.10,
+PostgreSQL 17.11, OpenShot 4.0.0/libopenshot 1.0.0 with its matching Python 3.8 ABI,
+FFmpeg 9.0.1, eSpeak NG 1.51, and app-local Microsoft C++ runtime DLLs. The API and
+media runtimes remain process-isolated. No Docker, WSL, Redis, installed Python,
+Node, or runtime download is used by the application. WSL and a build-only Linux
+extractor were used to produce the package; Windows Node/Chrome ran the tests.
+
+- **45 native backend tests passed**, including actual rendering, immutable
+  preview/final timing, audio placement, rational FPS, overlay geometry, portable
+  OpenShot export/reload, credential handling, and durable native-worker polling.
+- Native PostgreSQL concurrent cost reservation and claim-limit tests passed.
+- **8 Windows Chrome browser tests passed (23.4 seconds)** against the EXE's
+  backend: production, editing, undo/redo, reload, preview playback, export
+  downloads, Admin, themes, searchable credits, and replication prompt behavior.
+  The clipboard assertion accounts for Windows CRLF text normalization; prompt
+  downloads are still compared byte-for-byte.
+- Graceful stop and EXE restart preserved **all 9 project IDs and revisions**.
+  Before/after snapshots are in ignored `artifacts/native/projects-*-restart.json`.
+- Inspection of native PostgreSQL's loaded modules confirmed MSVCP140,
+  VCRUNTIME140 and VCRUNTIME140_1 load from the package's own directory.
+- Actual Windows extractor fixtures accepted valid payloads and rejected corrupt
+  hashes, parent traversal, drive-qualified paths, and missing required files.
+- The native WinForms launcher was rendered and visually checked, including its
+  embedded icon and readable controls (`artifacts/native/launcher.png`).
+- Linux regression: **45 backend tests**, PostgreSQL concurrency, frontend build,
+  and **8 browser tests (47.6 seconds)** passed. Compose was rebuilt and local
+  `http://127.0.0.1:8088/api/health` returned healthy with paid generation disabled.
+
+The native worker preserves PostgreSQL as authority and invokes the existing
+coordinator, including project locks, surviving placeholders, immutable snapshots,
+and uncertain-paid-submission handling. It uses bounded, fair polling instead of
+Windows-unsupported Celery. No paid provider calls were made.
+
+The deliverable is unsigned and was tested on this Windows host, not on a clean
+Windows VM or ARM device. Windows 10/11's OS-provided .NET Framework is required.
+The native file inventory identifies bundled files and hashes; it is not a complete
+corresponding-source redistribution audit of OpenShot's entire upstream bundle.
+Runtime notices and application source are included. The old Docker-based EXE
+below is a separate earlier artifact and does not satisfy the native requirement.
+
+## Earlier Windows offline application package
 
 Verified on 2026-09-16 using the actual Windows x64 executable, the Windows .NET
 Framework compiler/runtime, and Docker in the running Ubuntu WSL distribution.
@@ -250,7 +293,8 @@ opened the extracted bundle under Xvfb with networking disabled. Its log confirm
 project loading; the screenshot showed populated media, timeline clips, and a preview
 frame with captions. Local evidence is retained in ignored `artifacts/openshot-desktop.png`
 and `.log`. Offline update-check errors are explicitly excluded by the smoke checker.
-Windows, macOS, and newer OpenShot versions were not tested.
+At that earlier milestone, Windows, macOS, and newer OpenShot desktop versions
+were not tested; native Windows runtime evidence is recorded above.
 
 ## Dependency and deployment checks
 
