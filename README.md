@@ -32,6 +32,20 @@ docker compose down                # remove containers, preserve named volumes
 
 **Do not use `docker compose down -v` unless you intend to erase your projects.**
 
+## Windows EXE package
+
+Build an offline Windows application package with
+`python3 packaging/windows/build.py` after building the Compose images. Output:
+`artifacts/windows/ScriptStudio-Windows-x64.exe`, with a SHA-256 checksum and image
+manifest alongside it. The single EXE includes the app images, matching application
+source, and notices. It still requires a running **Linux Docker engine and Compose
+v2**, either Docker Desktop or Docker in a running WSL distribution; it is not
+a Docker-free native port. Double-click it and choose **Start studio**.
+
+The launcher keeps desktop data separate from this checkout, selects a loopback
+port, and provides Start/Stop/Open controls. No user projects or credentials are
+bundled. See [Windows packaging and operation](packaging/windows/README.md).
+
 ## Create a video
 
 You can write manually or use **Script → Write with AI**. Enter a video idea,

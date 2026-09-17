@@ -1,5 +1,41 @@
 # Verification evidence
 
+## Windows offline application package
+
+Verified on 2026-09-16 using the actual Windows x64 executable, the Windows .NET
+Framework compiler/runtime, and Docker in the running Ubuntu WSL distribution.
+The package is one approximately **487 MB (465 MiB)** EXE containing four Linux
+runtime images, source, and notices. Docker/WSL and the Windows framework runtime
+are external prerequisites; this is not a native Docker-free Windows application.
+
+- Actual Windows extraction tests passed for a valid payload and correctly
+  rejected checksum corruption, archive traversal, and missing required files.
+- The bundled gzip image archive loaded successfully with `docker load`.
+- Windows EXE `--start-test` started a separate `scriptstudio-exe-test` stack and
+  verified HTTP health at `http://127.0.0.1:18089`. No developer volumes, credentials,
+  or media were copied into it. The package's paid-generation defaults are off.
+- Inside the packaged backend: **44 tests passed (78.10 seconds)** and PostgreSQL
+  concurrency checks passed. Against its actual web endpoint: **8 Chromium tests
+  passed (1.2 minutes)**, including local mock production, editing, video playback,
+  all export downloads, Admin, themes, credits, and prompt copy/download behavior.
+  The frontend source build passed too.
+- Actual Windows EXE Stop/Start preserved all **5 test projects and their
+  revisions**. Test services were stopped afterward without deleting their volumes.
+  The regular development installation remains separate.
+- The native Windows launcher was rendered and captured. Testing exposed fixes
+  for Windows/WSL option quoting, detection of Docker in running distributions,
+  and icon loading from UNC paths. The build/test helpers use WSL's explicit
+  interoperability loader when binfmt registration is unavailable, without
+  altering system configuration. An occupied test port was avoided without
+  stopping the existing service.
+
+Build instructions and runtime boundaries are in
+[Windows packaging](../packaging/windows/README.md). Generated EXE, SHA-256 file,
+manifest, test reports, and screenshots live under ignored `artifacts/windows/`.
+The EXE is unsigned. Docker Desktop, clean-PC setup, Windows ARM, and a fully
+native Windows media stack have not been tested. Compilation alone is not the
+basis of the startup claim; a real Windows process started the verified stack.
+
 ## Interface themes & Codex replication prompt
 
 Verified locally on 2026-09-16. Every page header has a dark/light toggle; dark

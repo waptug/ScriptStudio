@@ -67,6 +67,17 @@ has since been verified live, as recorded below.
   from one canonical public text file.
 - [x] Verify copy/download parity and clipboard denial behavior; deploy locally.
 
+## Windows offline executable
+
+- [x] Build a Windows x64 launcher and single-file offline package containing
+  application images, matching source, icon, and license notices.
+- [x] Keep package services/data isolated from the development installation;
+  document the required Linux Docker engine and Windows framework runtime.
+- [x] Verify Windows extraction plus checksum, traversal, and missing-file rejection.
+- [x] Verify real Windows EXE startup using Docker in WSL, packaged video workflow,
+  native launcher rendering, and stop/restart persistence; build the release EXE.
+  Docker Desktop and a native Docker-free port are not claimed as verified.
+
 ## Decisions
 
 Python/FastAPI services and Celery workers use PostgreSQL as authority. Redis only
