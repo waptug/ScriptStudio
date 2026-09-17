@@ -233,3 +233,8 @@ and save. Discovery never generates content, downloads models, or calls cloud AI
 If Ollama is unreachable, the setup notice links to the official installer and
 asks you to open Ollama and retry. If it has no local models, the notice asks you
 to download one in Ollama. Manual writing and mock production remain available.
+
+The AI script writer shows an activity panel while a draft request is pending, with
+a spinner, an indeterminate progress bar, and elapsed waiting time. It reports
+success or failure without replacing your saved script. Elapsed time is not a
+model completion estimate; internal model reasoning is not displayed.

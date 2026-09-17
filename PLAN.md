@@ -115,3 +115,9 @@ complete third-party corresponding-source redistribution audits are not claimed.
 - [x] Show install/start, retry, and no-local-model guidance on dashboard and Admin.
 - [x] Backend discovery and regression tests: 51 passed; PostgreSQL concurrency passed.
 - [x] 10 browser tests and 50 native backend tests passed. Real Windows discovery found IPv6 loopback and persisted its URL.
+
+## Script writer activity
+
+- [x] Show pending requests with a spinner, indeterminate bar, and elapsed time.
+- [x] Report completion and errors while preserving manual text and prior drafts.
+- [x] Respect reduced motion and announce status without announcing each timer tick.

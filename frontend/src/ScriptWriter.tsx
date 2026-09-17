@@ -13,6 +13,8 @@ export function ScriptWriter({projectId,configured,productionStarted,targetSecon
   const [seconds,setSeconds]=useState(Math.min(300,Math.max(30,targetSeconds)));
   const [draft,setDraft]=useState<Draft|null>(null);
   const [working,setWorking]=useState(false);
+  const [elapsed,setElapsed]=useState(0);
+  const [activity,setActivity]=useState('');
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
   const controller=useRef<AbortController|null>(null);
@@ -35,8 +37,15 @@ export function ScriptWriter({projectId,configured,productionStarted,targetSecon
     catch { /* A full or disabled browser store must not break generation. */ }
   },[key,prompt,audience,tone,seconds,draft]);
 
+  useEffect(()=>{
+    if(!working)return;
+    const started=Date.now();
+    const timer=window.setInterval(()=>setElapsed(Math.floor((Date.now()-started)/1000)),1000);
+    return ()=>window.clearInterval(timer);
+  },[working]);
+
   async function generate() {
-    setWorking(true);setError('');setNotice('');
+    setWorking(true);setElapsed(0);setActivity('Waiting for your local AI model to return a draft…');setError('');setNotice('');
     controller.current=new AbortController();
     try {
       const response=await fetch(`/api/projects/${projectId}/script-draft`,{
@@ -45,9 +54,9 @@ export function ScriptWriter({projectId,configured,productionStarted,targetSecon
       });
       const result=await response.json();
       if(!response.ok)throw Error(typeof result.detail==='string'?result.detail:'Check your prompt and duration, then try again.');
-      setDraft(result);
+      setDraft(result);setActivity('Draft ready to review.');
     } catch(e) {
-      if((e as Error).name!=='AbortError')setError((e as Error).message);
+      if((e as Error).name!=='AbortError'){setError((e as Error).message);setActivity('Draft generation failed. You can try again.');}
     } finally {setWorking(false);}
   }
 
@@ -69,7 +78,19 @@ export function ScriptWriter({projectId,configured,productionStarted,targetSecon
         <button className="primary wide" disabled={!prompt.trim()||!Number.isInteger(seconds)||seconds<30||seconds>300}
           onClick={()=>void generate()}>{working?'Writing draft…':draft?'Generate another draft':'Generate script'}</button>
       </fieldset>
-      {working&&<p role="status">Writing with your local AI model. This can take a few minutes. Your current script is unchanged.</p>}
+      {activity&&<section className="writer-activity" aria-label="Script generation activity" aria-busy={working}>
+        <div className="writer-activity-heading">
+          {working&&<span className="writer-spinner" aria-hidden="true"/>}
+          <strong>{working?'Writing script…':error?'Generation stopped':'Script ready'}</strong>
+          <span className="writer-elapsed" aria-label="Elapsed time">{Math.floor(elapsed/60)}:{String(elapsed%60).padStart(2,'0')} elapsed</span>
+        </div>
+        <p role="status">{activity}</p>
+        {working&&<>
+          <progress aria-label="Waiting for script draft"/>
+          <p className="muted">The request is pending. Model loading and longer drafts can take a few minutes. The timer shows time waiting, not model progress.</p>
+        </>}
+        <p className="muted">Your script changes only when you choose to use the draft.</p>
+      </section>}
       {error&&<p role="alert" className="error">{error}</p>}
       {draft&&<div className="draft-review">
         <p className="muted">Local AI · {draft.model} · Review facts and wording before use. Timing is an estimate.</p>

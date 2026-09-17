@@ -1,5 +1,14 @@
 # Verification evidence
 
+## Script writer activity panel
+
+Frontend build, all 10 browser tests (30.8 seconds), 51 backend tests, and
+PostgreSQL concurrency checks pass. The browser writer test holds a draft request
+open, verifies the active indicator and advancing timer, then verifies success
+and failure cleanup while preserving manual text and the previous review draft.
+The panel measures waiting time; it does not expose model reasoning or claim
+model completion percentages. The updated frontend is deployed locally.
+
 ## Automatic host Ollama discovery
 
 The backend suite passes 51 tests, including malformed host environment handling, discovery persistence, preserving a

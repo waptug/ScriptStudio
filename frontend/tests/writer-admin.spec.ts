@@ -25,10 +25,32 @@ test('admin model selection and reviewable AI script without overwriting manual 
   await page.getByLabel('Script',{exact:true}).fill('My original manual script.');
   await page.getByRole('button',{name:'Write with AI',exact:true}).click();
   await page.getByLabel('Video idea').fill('A tour of a small garden');
+  let releaseDraft!:()=>void;
+  const pendingDraft=new Promise<void>(resolve=>{releaseDraft=resolve;});
   await page.route('**/api/projects/*/script-draft',async route=>{
+    await pendingDraft;
     await route.fulfill({json:{script:'[A garden] Small gardens bring big possibilities.',model:'gemma3:4b',estimated_seconds:30}});
   });
   await page.getByRole('button',{name:'Generate script',exact:true}).click();
+  const activity=page.getByRole('region',{name:'Script generation activity'});
+  try {
+    await expect(activity).toHaveAttribute('aria-busy','true');
+    await expect(activity.getByRole('progressbar')).toBeVisible();
+    await expect(activity.getByLabel('Elapsed time')).not.toHaveText('0:00 elapsed');
+    await expect(page.getByLabel('Script',{exact:true})).toHaveValue('My original manual script.');
+    await expect(page.getByRole('button',{name:'Writing draft…',exact:true})).toBeDisabled();
+  } finally {releaseDraft();}
+  await expect(page.getByLabel('Generated script',{exact:true})).toHaveValue(/Small gardens/);
+  await expect(activity).toHaveAttribute('aria-busy','false');
+  await expect(activity.getByRole('progressbar')).toHaveCount(0);
+  await expect(activity.getByRole('status')).toHaveText('Draft ready to review.');
+  await page.unroute('**/api/projects/*/script-draft');
+  await page.route('**/api/projects/*/script-draft',route=>route.fulfill({status:503,json:{detail:'Local model unavailable'}}));
+  await page.getByRole('button',{name:'Generate another draft',exact:true}).click();
+  await expect(activity.getByRole('status')).toContainText('failed');
+  await expect(activity).toHaveAttribute('aria-busy','false');
+  await expect(activity.getByRole('progressbar')).toHaveCount(0);
+  await expect(page.getByRole('alert')).toHaveText('Local model unavailable');
   await expect(page.getByLabel('Generated script',{exact:true})).toHaveValue(/Small gardens/);
   await expect(page.getByLabel('Script',{exact:true})).toHaveValue('My original manual script.');
   await page.getByLabel('Generated script',{exact:true}).fill('[A garden] My reviewed AI draft.');
