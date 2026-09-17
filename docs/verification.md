@@ -9,6 +9,12 @@ and failure cleanup while preserving manual text and the previous review draft.
 The panel measures waiting time; it does not expose model reasoning or claim
 model completion percentages. The updated frontend is deployed locally.
 
+The Windows package from commit `b8cc829` was rebuilt and checksum-verified on E:.
+All 10 Windows Chrome tests pass (32.9 seconds) against its bundled native backend,
+PostgreSQL, and worker using isolated E: test data. The payload was extracted
+directly for this run because C: lacks space for another test extraction; the
+unchanged launcher extraction path was not revalidated in this update.
+
 ## Automatic host Ollama discovery
 
 The backend suite passes 51 tests, including malformed host environment handling, discovery persistence, preserving a
