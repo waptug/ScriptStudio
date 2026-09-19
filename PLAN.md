@@ -87,7 +87,7 @@ Native Chrome confirmed four Ready model panels, an enabled sound-effect
 generator, and advancing five-second preview playback with no page errors.
 The launcher now supports a separate portable `--workspace local-models`; native
 extraction, archive-safety, free-space, and workspace-path checks passed on D:.
-Release source `953ad85` is packaged at
+The initial three-model release, source `953ad85`, was packaged at
 `D:\ScriptStudio\ScriptStudio-Local-Models.exe` (SHA-256
 `b9386cee473e05e04acab6ead027753a7d94d429bd4fd1a98a3915da4ac6b323`),
 with verified extracted package `5741f0b16a3970ac`. The desktop shortcut
@@ -101,6 +101,18 @@ of a real Wan/Kokoro preview without page errors. Fresh Edge profile startup
 stalled on this host; reusing the previously verified isolated profile resolved
 visible startup, with both original profiles preserved. D: has about 646.7 GiB
 free after installation. The original Docker desktop shortcut is unchanged.
+The final four-model desktop release uses source `756f8a8` and package
+`369a5d3b8fa6dea5`, installed at `D:\ScriptStudio\ScriptStudio-Local-Models.exe`
+(SHA-256 `47dac212eb07c8b4722a2f98cad9e8d81cb7d7385d22e79dfe75490f0b89a2f4`).
+Extraction and source/manifest comparison passed. Desktop shortcut restart
+preserved all 77 then-current project documents, the protected credential, and
+four Ready model states; paid generation remained disabled. Native Chrome
+rechecked all four panels and advancing SFX preview playback after replacement,
+with no page errors. The launcher and editor windows are visible. The previous
+EXE is retained under `ScriptStudioNative\release-backups`, and its original
+cached package was restored for rollback. Closing the owned editor window
+released its live-update connection so the old service could drain cleanly.
+
 The user subsequently selected D:. Its native application is verified at
 `D:\ScriptStudio\ScriptStudio-Native-Windows-x64.exe`, recovered from the local
 backup whose SHA-256 matches E:'s recorded application checksum. Package
