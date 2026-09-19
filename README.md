@@ -45,6 +45,12 @@ See [native packaging, operation, and build instructions](packaging/native/READM
 and [validation evidence](docs/verification.md). The launcher uses the .NET
 Framework included with Windows 10/11; the EXE is unsigned.
 
+For local AI narration, music, and video, use **Admin → Local models** in the
+native Windows app. See [the local-model usage guide](docs/local-models.md) for
+Ollama writing/planning, Kokoro voices, ACE-Step music, Wan video, and the pending
+Stable Audio access requirements. Downloads and isolated inference runtimes stay
+beside the EXE. Local generation is separate from mock and paid providers.
+
 ## Earlier Docker-based Windows EXE package
 
 Build an offline Windows application package with

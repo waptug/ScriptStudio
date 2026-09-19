@@ -91,6 +91,7 @@ def test_download_retry_keeps_original_generation(project_id,monkeypatch):
     with Session() as s:
         assert s.get(Job,jid).state=='ready'
         assert s.get(Job,jid).asset_id
+        assert s.get(Job,jid).error is None
     assert provider.calls==1 and len(downloads)==2
 
 

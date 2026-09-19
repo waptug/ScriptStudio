@@ -22,7 +22,7 @@ test('admin paid generation switches save, reload, and show master override',asy
   for(const type of ['text','video','audio','speech','music'])
     await page.getByRole('switch',{name:`Paid ${type} generation`,exact:true}).check();
   await page.getByRole('button',{name:'Save admin settings'}).click();
-  await expect(page.getByRole('status')).toContainText('Admin settings saved');
+  await expect(page.getByRole('status').filter({hasText:'Admin settings saved'})).toContainText('Admin settings saved');
   await page.reload();
   await page.getByRole('button',{name:'Admin',exact:true}).click();
   await expect(master).toBeChecked();
@@ -30,9 +30,9 @@ test('admin paid generation switches save, reload, and show master override',asy
     await expect(page.getByRole('switch',{name:`Paid ${type} generation`,exact:true})).toBeChecked();
   await master.uncheck();
   await page.getByRole('button',{name:'Save admin settings'}).click();
-  await expect(page.getByRole('status')).toContainText('Admin settings saved');
+  await expect(page.getByRole('status').filter({hasText:'Admin settings saved'})).toContainText('Admin settings saved');
   expect(config.paid_generation.video).toBe(true);
   expect(config.paid_generation.enabled).toBe(false);
-  await expect(page.locator('.admin-section').first()).toContainText('Blocked.');
+  await expect(page.locator('.admin-section').filter({has:page.getByRole('heading',{name:'Paid AI generation',exact:true})})).toContainText('Blocked.');
   await page.screenshot({path:'test-results/paid-permissions.png',fullPage:true});
 });

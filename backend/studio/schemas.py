@@ -18,12 +18,14 @@ class Settings(BaseModel):
     fps_den: int = Field(1, ge=1, le=1001)
     style: str = Field('Cinematic nature documentary', max_length=2000)
     reference_assets: list[str] = []
-    voice_provider: Literal['mock', 'elevenlabs'] = 'mock'
+    voice_provider: Literal['mock', 'elevenlabs', 'kokoro'] = 'mock'
     voice_id: str = 'en-us'
     voice_settings: dict = {'stability': 0.5, 'similarity_boost': 0.75}
-    video_provider: Literal['mock', 'runway'] = 'mock'
-    music_provider: Literal['mock', 'import', 'suno'] = 'mock'
+    video_provider: Literal['mock', 'runway', 'wan'] = 'mock'
+    music_provider: Literal['mock', 'import', 'suno', 'ace_step'] = 'mock'
     music_mood: str = 'calm'
+    music_prompt: str = Field('',max_length=2000)
+    music_lyrics: str = Field('',max_length=10000)
     target_duration: int = Field(60, ge=10, le=300)
     spending_limit: float = Field(0, ge=0, le=10000)
     max_concurrency: int = Field(2, ge=1, le=8)

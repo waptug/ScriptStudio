@@ -11,7 +11,7 @@ DEFAULTS = {
     'RUNWAY_MODEL': 'gen4.5', 'ELEVENLABS_MODEL': 'eleven_multilingual_v2',
     'RUNWAY_USD_PER_SECOND': '0.12', 'ELEVENLABS_USD_PER_CHARACTER': '',
 }
-SECRETS = {'RUNWAY_API_KEY', 'ELEVENLABS_API_KEY'}
+SECRETS = {'RUNWAY_API_KEY', 'ELEVENLABS_API_KEY', 'HF_TOKEN'}
 PAID_CATEGORIES = ('text', 'video', 'audio', 'speech', 'music')
 
 

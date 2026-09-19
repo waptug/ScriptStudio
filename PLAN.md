@@ -1,5 +1,52 @@
 # ScriptStudio implementation plan
 
+## Local media models on D: (in progress)
+
+- [x] Confirm Windows RTX 3060 12 GB and E: free-space report (about 2.8 TiB).
+- [x] Add native Windows dependency resolution and pinned-wheel extraction support.
+- [x] Verify D: has about 705 GiB free and passes a native Windows write test.
+- [x] Recover the exact native EXE to D: and verify/extract its embedded package.
+- [ ] Finish moving existing project data from E: and switch the desktop shortcut.
+- [ ] Resolve all model manifests and install alongside the native app on D:.
+- [ ] Verify actual narration, video, music, and sound-effect generation on Windows.
+- [ ] Verify local writing/planning, UI workflow, preview/export, and desktop launch.
+- [ ] Obtain Stable Audio upstream access and an authorized token through Admin.
+
+Installation is not complete. Two native resolver attempts failed with Windows
+error 21 (device not ready) creating
+`E:\ScriptStudio\ScriptStudioNative\model-build`. Windows confirms the existing
+app folder is a regular directory, not a junction. Kokoro, Wan, and ACE-Step now have pinned native Windows manifests. Kokoro
+installed and generated 7.325 seconds of real narration through the native app
+on D:. ACE-Step installed and generated 13.2 seconds of real music through the
+native job pipeline (583 seconds elapsed under competing Minecraft/Ollama GPU
+load). Wan has installed and passed its native runtime/CUDA probe; actual
+video generation passed: 81 H.264 frames at 832 × 480 / 16 fps (5.0625 seconds).
+The first run took 2362.66 seconds including slow paging/model loading; its
+30 diffusion steps took 19 minutes 22 seconds. A decoded frame was visually checked. Local Ollama writing and structured
+planning both passed with gemma3:4b in the separate validation workspace.
+The backend suite passed 59 tests; PostgreSQL concurrency checks, frontend build,
+and all 10 browser tests against the Docker app passed (two Admin selectors were
+updated for the model panels). Native Admin readiness and a rendered preview with real Kokoro narration
+were verified in Edge, including advancing video playback. Sound effects remain
+unverified pending upstream access. Real Wan/Kokoro final export passed through libopenshot and downloaded through
+the app as a 582,443-byte MP4 (SHA-256
+`35d36fe43f1f901fb8d72673eccfc9c2495d30ec8082fa2dc6598a95304b8454`). ACE-Step checkpoint code pinning, strict offline initialization, and additional
+CPU offload passed a second real generation: a 10-second sample was trimmed to
+4.75 seconds at unchanged tempo, with peak CUDA allocation 4.52 GiB. Its pinned
+checkpoint code hashes remained unchanged afterward. Wan's runtime now includes
+ftfy/imageio and its additional wheels match a native Windows dependency report.
+Stable Audio public runtime resolution succeeded; gated weights remain pending.
+The launcher now supports a separate portable `--workspace local-models`; native
+extraction, archive-safety, free-space, and workspace-path checks passed on D:.
+Its desktop shortcut and final packaged deployment are still pending.
+The user subsequently selected D:. Its native application is verified at
+`D:\ScriptStudio\ScriptStudio-Native-Windows-x64.exe`, recovered from the local
+backup whose SHA-256 matches E:'s recorded application checksum. Package
+`c59cb3999706cb58` successfully verified and extracted there. E: reads stalled
+during project-data migration, so the source remains preserved and the desktop
+shortcut has not yet been switched. The first bulk-copy attempt left a locked,
+unverified `D:\ScriptStudio\ScriptStudio.exe`; do not use that partial file.
+
 - [x] 1. Foundation: typed project/timeline models, PostgreSQL migrations, storage, Compose.
 - [x] 2. Runnable mock production: planning, measured speech, shots, music, MP4.
 - [x] 3. Durable orchestration: progressive assembly, budgets, recovery, takes.

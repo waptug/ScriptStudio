@@ -187,6 +187,7 @@ class SunoMusicProvider(MusicProvider):
 
 
 def get_provider(kind, name):
+    if LOCAL_PROVIDERS.get(name)==kind: return LocalMediaProvider(name)
     providers = {('video','mock'):MockVideoProvider, ('narration','mock'):MockNarrationProvider,
                  ('music','mock'):MockMusicProvider, ('video','runway'):RunwayVideoProvider,
                  ('narration','elevenlabs'):ElevenLabsNarrationProvider, ('music','suno'):SunoMusicProvider}
@@ -194,3 +195,37 @@ def get_provider(kind, name):
         return providers[(kind,name)]()
     except KeyError:
         raise ValueError('Unsupported provider')
+
+
+LOCAL_PROVIDERS = {'kokoro':'narration','wan':'video','ace_step':'music','stable_audio':'sfx'}
+
+
+def processing_mode(name):
+    if name == 'mock': return 'mock'
+    if name in LOCAL_PROVIDERS or name == 'ffmpeg': return 'local'
+    return 'paid'
+
+
+class LocalMediaProvider(Provider):
+    capabilities = Capabilities(False, True, idempotency=True)
+    def __init__(self,name): self.name=name
+    def estimate(self,request): return 0.0
+    def validate(self,request):
+        from .local_models import LocalModelService, CATALOG
+        LocalModelService().require_ready(self.name)
+        if self.name=='kokoro' and request.get('voice_id') not in CATALOG['kokoro']['voices']:
+            raise ValueError('Select a Kokoro stock voice in Project settings')
+        if self.name=='stable_audio' and not 0 < request.get('duration',0) <= 11:
+            raise ValueError('Sound effects must be between 0 and 11 seconds')
+        if self.name=='ace_step' and not 1 <= request.get('duration',0) <= 300:
+            raise ValueError('Local music supports 1–300 seconds')
+    def prepare(self,request):
+        from .local_models import manifest
+        import secrets
+        return {**request,'model':self.name,'model_revision':manifest(self.name)['revision'],
+                'seed':request.get('seed',secrets.randbelow(2**31)),
+                **({'duration':81/16,'width':832,'height':480,'frames':81,'steps':30,'offload':True} if self.name=='wan' else {})}
+    def submit(self,job_id,request):
+        from .local_inference import run_inference
+        self.validate(request)
+        return run_inference(self.name,job_id,request)

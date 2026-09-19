@@ -11,11 +11,11 @@ test('admin model selection and reviewable AI script without overwriting manual 
   await expect(page.getByRole('heading',{name:'Models & credentials'})).toBeVisible();
   await page.getByLabel('Local Ollama server URL').fill('http://host.docker.internal:11434');
   await page.getByRole('button',{name:'List installed models'}).click();
-  await expect(page.getByRole('status')).toContainText('Found 2');
+  await expect(page.getByRole('status').filter({hasText:'Found 2'})).toContainText('Found 2');
   await page.getByLabel('Script writing model',{exact:true}).fill('gemma3:4b');
   await page.getByLabel('Scene planning model',{exact:true}).fill('gemma3:4b');
   await page.getByRole('button',{name:'Save admin settings'}).click();
-  await expect(page.getByRole('status')).toContainText('Admin settings saved');
+  await expect(page.getByRole('status').filter({hasText:'Admin settings saved'})).toContainText('Admin settings saved');
   await page.reload();
   await page.getByRole('button',{name:'Admin',exact:true}).click();
   await expect(page.getByLabel('Script writing model',{exact:true})).toHaveValue('gemma3:4b');

@@ -54,6 +54,23 @@ without starting services.
 
 ### Portable Windows storage and free space
 
+Local media-model installation is being completed for the existing app under
+`D:\ScriptStudio` (changed from E: after drive failures). The current source includes Admin controls and model adapters,
+but no model should be considered installed until its pinned runtime/weights are
+present and real generation succeeds. `resolve_local_models.py` resolves Kokoro,
+Wan, and ACE-Step dependencies using native Windows Python and keeps its downloads and
+pip cache in the directory passed with `--work`. It generates the manifests used
+by the app installer; it does not itself mark a model ready. Kokoro has generated real narration on Windows, ACE-Step has generated real music,
+Wan generated a real 81-frame 480p clip, and local Ollama writing/planning and
+native preview playback passed. Stable Audio setup remains pending upstream access.
+See [the local-model usage guide](../../docs/local-models.md).
+
+On this workstation, E: returned Windows error 21 (device not ready). D: passed
+a native write test and has ample space. The exact application backup has been
+recovered and its package verified on D:, but moving the previous project data
+still depends on readable access to E:. Stable Audio additionally requires upstream access and a token
+saved through Admin. Do not place credentials in installer command lines.
+
 The native launcher resolves its EXE folder, independently of the current working
 directory. Runtime packages, PostgreSQL, projects, logs, temporary files, caches,
 and the dedicated Edge/Chrome browser profile stay in `ScriptStudioNative` beside
@@ -82,3 +99,23 @@ portable browser. Pass `-Exe <full Windows EXE path>` to `test-runtime.ps1`; its
 `test_launcher.py` compiles current launcher sources and covers low-disk refusal,
 archive safety, and the C# storage checks. `SCRIPTSTUDIO_EXTRACT_TEST_DIR` can
 place those small test EXEs on a chosen drive.
+
+For a gated model, `resolve_local_models.py stable_audio --runtime-only --work <Windows-path>
+--locks <Windows-path>` prepares only its public dependency report. It does not
+access gated weights, create an installable manifest, or mark the model ready.
+The current Stable Audio runtime uses Python 3.10 with NumPy 1.26.4 for its pinned
+PyWavelets dependency. Completing the model manifest still requires approved
+upstream access and a token supplied through the encrypted Admin configuration.
+
+`ScriptStudio-Native-Windows-x64.exe --workspace local-models --start` opens a separate
+portable workspace in `ScriptStudioNative/workspace-local-models`. Workspace
+names use letters, numbers, underscores, and hyphens; they cannot name paths or
+escape the portable folder. Names are case-normalized for launch locking.
+Each workspace owns its projects and credentials while sharing the model files
+under `ScriptStudioNative/local-models`. The default launch still uses `data`.
+This permits a separate local-model desktop shortcut while old-drive project
+recovery is pending. Close the app before moving any workspace directory.
+
+The optional final `--start` flag starts the services and opens the studio when
+the launcher appears. Stop studio and closing the launcher still drain active
+jobs before shutdown. Without that flag, use the Start studio button.

@@ -10,13 +10,13 @@ import time
 from sqlalchemy import select
 from .db import Session, transaction, project_lock, Job, Asset, Project
 from .schemas import Settings, Storyboard, Item, uid
-from .providers import get_provider, RateLimited, SubmissionUnknown
+from .providers import get_provider, RateLimited, SubmissionUnknown, processing_mode
 from .storage import AssetRepository, LocalStorage
 from .timeline import TimelineService
 from .budget import BudgetService
 from .render import RenderService
 
-ACTIVE = ('submitting','submitted','generating','downloading','validating')
+ACTIVE = ('waiting_for_gpu','loading','submitting','submitted','generating','downloading','validating')
 TERMINAL = ('ready','failed','canceled','submission_outcome_unknown')
 
 
@@ -50,10 +50,11 @@ class NarrationService:
 
 class GenerationCoordinator:
     def enqueue(self, session, project, kind, provider_name, inputs):
-        if provider_name != 'mock':
+        if processing_mode(provider_name) == 'paid':
             require_paid({'narration':'speech', 'sfx':'audio'}.get(kind, kind))
         provider = get_provider(kind,provider_name)
         provider.validate(inputs)
+        if hasattr(provider, 'prepare'): inputs = provider.prepare(inputs)
         estimate = provider.estimate(inputs)
         BudgetService().reserve(session,project,estimate)
         encoded = json.dumps(inputs,sort_keys=True)
@@ -136,9 +137,15 @@ class GenerationCoordinator:
         if settings.music_provider not in ('import','suno'):
             music_item = Item(track='music',duration=offset,volume=.25,fade_in=settings.frames(2),fade_out=settings.frames(3))
             TimelineService().save(session,project,{**project.timeline,'items':project.timeline['items']+[music_item.model_dump()]})
-            self.enqueue(session,project,'music',settings.music_provider,{'duration':settings.seconds(offset),'mood':settings.music_mood,'placeholder_id':music_item.id})
+            self.enqueue(session,project,'music',settings.music_provider,{'duration':settings.seconds(offset),'mood':settings.music_mood,'prompt':settings.music_prompt,'lyrics':settings.music_lyrics,'placeholder_id':music_item.id})
         jobs[0].result = {**jobs[0].result,'assembled':True}
         jobs[0].error = None
+
+    def sound_effect(self,session,project,payload):
+        settings=Settings.model_validate(project.settings)
+        item=Item(track='sfx',start=payload.start,duration=max(1,settings.frames(payload.duration)))
+        TimelineService().save(session,project,{**project.timeline,'items':project.timeline['items']+[item.model_dump()]})
+        return self.enqueue(session,project,'sfx','stable_audio',{'prompt':payload.prompt,'duration':payload.duration,**({'seed':payload.seed} if payload.seed is not None else {}),'placeholder_id':item.id})
 
     def regenerate(self, session, project, shot_id):
         board = Storyboard.model_validate(project.storyboard)
@@ -153,10 +160,11 @@ class GenerationCoordinator:
         if job.state == 'ready': return
         job.asset_id = asset.id
         job.state = 'ready'
+        job.error = None
         job.progress = 1
         job.lease_until = 0
         job.updated = time.time()
-        if job.kind in ('video','music'):
+        if job.kind in ('video','music','sfx'):
             TimelineService().fill(session,project,job.inputs.get('placeholder_id'),asset)
 
     def claim(self, job_id):
@@ -169,8 +177,10 @@ class GenerationCoordinator:
             if job.state in TERMINAL or job.lease_until>now or job.next_run>now: return False
             active = session.query(Job).filter(Job.project_id==project.id,Job.id!=job.id,Job.state.in_(ACTIVE)).count()
             if job.state=='queued' and active>=project.settings['max_concurrency']: return False
+            if processing_mode(job.provider)=='local' and job.kind!='render' and job.state in ('waiting_for_gpu','loading','generating'):
+                job.state='queued'
             if job.state=='submitting':
-                if job.provider=='mock' or job.kind=='render':
+                if processing_mode(job.provider)!='paid' or job.kind=='render':
                     job.state='queued'
                 else:
                     job.state='submission_outcome_unknown'
@@ -209,7 +219,7 @@ class GenerationCoordinator:
                 if state=='submitting':
                     # Check immediately before a worker starts a new paid request.
                     # Polling/downloads for previously submitted work remain permitted.
-                    if provider_name != 'mock':
+                    if processing_mode(provider_name) == 'paid':
                         require_paid({'narration':'speech', 'sfx':'audio'}.get(kind, kind))
                     self.set(job_id,state='submitting',attempts=attempts+1)
                     result = provider.submit(job_id,inputs)
@@ -242,11 +252,14 @@ class GenerationCoordinator:
                 if job.state=='canceled': return
                 provenance = {'job_id':job.id,'provider':job.provider,'model':job.model,
                               'shot_id':inputs.get('shot_id'),'inputs':{k:v for k,v in inputs.items() if k!='prompt_image'},
+                              'processing_mode':processing_mode(job.provider), 'model_revision':inputs.get('model_revision'), 'seed':inputs.get('seed'),
                               'caption_method':result.get('caption_method'), 'alignment':result.get('alignment')}
                 asset = AssetRepository().ingest(session,project_id,output,f'{kind} • {job.id[:8]}',provenance,asset_id=job.id)
                 self.complete(session,project,job,asset)
             if kind=='narration':
                 self.try_assembly(project_id)
+        except __import__('studio.local_inference',fromlist=['GPUWaiting']).GPUWaiting as exc:
+            self.set(job_id,state='waiting_for_gpu',error=str(exc),lease_until=0,next_run=time.time()+5)
         except PaidGenerationDisabled as exc:
             self.set(job_id,state='failed',error=str(exc),lease_until=0,
                      result={**result,'retry_state':'queued','safe_to_retry_submission':True})
@@ -263,8 +276,8 @@ class GenerationCoordinator:
         except Exception as exc:
             with Session() as session:
                 job = session.get(Job,job_id)
-                uncertain = job.state=='submitting' and job.provider!='mock' and not isinstance(exc,ValueError)
-                rejected = job.state=='submitting' and job.provider!='mock' and isinstance(exc,ValueError)
+                uncertain = job.state=='submitting' and processing_mode(job.provider)=='paid' and not isinstance(exc,ValueError)
+                rejected = job.state=='submitting' and processing_mode(job.provider)=='paid' and isinstance(exc,ValueError)
                 result = deepcopy(job.result)
             if rejected:
                 self.set(job_id,state='failed',error=str(exc)[:3000],lease_until=0,
@@ -296,7 +309,7 @@ class GenerationCoordinator:
             if safe_submission and not job.provider_id:
                 job.state='queued'
                 job.result={**job.result,'safe_to_retry_submission':True}
-            if job.state=='submitting' and job.provider=='mock': job.state='queued'
+            if processing_mode(job.provider)!='paid' and job.kind!='render': job.state='queued'
             if job.retries>=5:
                 job.result = {**job.result,'retry_state':job.state}
                 job.state='failed'
@@ -305,7 +318,7 @@ class GenerationCoordinator:
 
     def retry(self, session, job):
         if job.state!='failed': raise ValueError('Only failed jobs can be retried')
-        if job.provider!='mock' and job.attempts and not job.provider_id and not job.result.get('safe_to_retry_submission'):
+        if processing_mode(job.provider)=='paid' and job.attempts and not job.provider_id and not job.result.get('safe_to_retry_submission'):
             raise ValueError('No provider ID is known. Reconcile submission rather than risk a second paid request.')
         job.state = job.result.get('retry_state','submitted' if job.provider_id else 'queued')
         job.retries=0

@@ -39,7 +39,9 @@ class LocalOllama:
             # Ollama models cannot load the vocabulary used by structured output.
             body.pop('format')
         try:
-            response = httpx.post(self.url + '/api/chat', json=body, timeout=180)
+            from .local_inference import gpu_reservation
+            with gpu_reservation():
+                response = httpx.post(self.url + '/api/chat', json=body, timeout=180)
             response.raise_for_status()
         except httpx.HTTPError as exc:
             raise ValueError('Local AI generation failed or timed out. Check that Ollama is reachable and the configured model is installed; your script was not changed.') from exc

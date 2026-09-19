@@ -4,6 +4,11 @@ using System.IO;
 static class StorageChecks {
  static int Main() {
   if(Program.Root!=Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"ScriptStudioNative"))throw new Exception("Storage is not beside the executable");
+  if(Program.WorkspaceData("Local-Models")!=Path.Combine(Program.Root,"workspace-local-models"))throw new Exception("Workspace is not portable or case-normalized");
+  foreach(string name in new[]{"","..","../data","C:\\data","models/other",new string('a',65)}) {
+   try {Program.WorkspaceData(name);throw new Exception("Unsafe workspace accepted");}
+   catch(ArgumentException) {}
+  }
   Program.RequireSpace(1024,1024);
   try {Program.RequireSpace(1024,1023);throw new Exception("Low space accepted");}
   catch(DiskSpaceException e){if(!e.Message.Contains(Program.LaunchDirectory)||!e.Message.Contains("Close the launcher"))throw;}

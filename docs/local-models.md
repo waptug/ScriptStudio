@@ -1,0 +1,50 @@
+# Using local models
+
+Use the native Windows app for local media generation. Open **Admin → Local
+models** to install each model. Wait for **Ready** before selecting it in a
+project. Downloads include an isolated Python runtime and pinned weights; Resume
+continues interrupted downloads and Verify checks the installed files.
+
+On this workstation, the installation is under `D:\ScriptStudio`. Keep the EXE
+and its `ScriptStudioNative` folder together. The old E: project migration is
+still incomplete, so the development verification workspace is separate from
+existing projects. Model downloads and caches are shared under
+`ScriptStudioNative\local-models`.
+
+| Task | Model | Where to use it |
+| --- | --- | --- |
+| Write a script | Installed Ollama model, such as `gemma3:4b` | Admin: discover Ollama and select the script writer. In a project, describe the video, generate a draft, review it, then use and save it. |
+| Plan shots | Installed Ollama model | Select **Local Ollama model** under Script planner, then **Plan scenes & shots**. The deterministic planner is also available. |
+| Narration | Kokoro-82M | Project settings: select Kokoro and a stock voice, save, plan, then start production. Visual directions in brackets are excluded from speech. |
+| Video | Wan 2.1 T2V-1.3B | Project settings: select Wan, save, plan, review each shot prompt, then start production. The preset generates 832 × 480 video with 81 frames at 16 fps. |
+| Music | ACE-Step 1.5 | Project settings: select ACE-Step, enter the music prompt and optional lyrics, save, then start production. Empty lyrics request instrumental music. |
+| Sound effects | Stable Audio Open Small | Media library: expand **Generate a local sound effect**, describe the sound in English, choose up to 11 seconds, and generate at the playhead. |
+
+Choose providers before starting production. Narration determines the timing;
+the app does not speed up speech to match footage. Generated assets appear in
+the media library and eligible timeline placeholders. Preview the result, adjust
+the timeline, then build a preview or render the final MP4.
+
+Local generation has no provider charge. Paid generation switches can remain
+off. A project using mock video is still a mock-video project even if its speech
+or music is real; select the local providers explicitly for a fully local result.
+
+Kokoro runs on the CPU. GPU media jobs share the NVIDIA GPU and the app releases
+idle Ollama models before media inference. Leave sufficient GPU memory available
+and wait for the current job instead of submitting duplicates. Loading large
+weights can take several minutes, especially while other applications use RAM
+or the GPU. Other apps using Ollama can load a model again independently of
+ScriptStudio; pause those workloads when you need the full GPU for video.
+A model's Ready state confirms installation and a runtime probe; actual generation validation is
+recorded separately in PLAN.md.
+
+Stable Audio requires acceptance of its upstream license and access conditions
+on its Hugging Face page, plus an authorized token saved through **Admin → API
+credentials**. Its commercial-use conditions differ from the other models.
+Never put the token into a project prompt or command line. The app's license
+checkbox records your acceptance; it does not grant upstream access.
+
+On the verified RTX 3060 12 GB workstation, the first five-second Wan sample
+took about 39 minutes including model loading under RAM pressure. Its 30
+generation steps took about 19 minutes. Start with one short shot and allow it
+to finish; loading time depends strongly on available RAM and disk speed.

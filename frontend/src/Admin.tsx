@@ -1,3 +1,4 @@
+import {LocalModels} from './LocalModels';
 import {discoverOllama,OllamaGuidance,type OllamaDiscovery} from './OllamaSetup';
 import {ThemeToggle} from './ThemeToggle';
 import {useEffect, useState} from 'react';
@@ -11,7 +12,7 @@ const paidCategories: {key:Exclude<keyof PaidPermissions,'enabled'>;label:string
   {key:'speech',label:'Paid speech generation',description:'ElevenLabs narration. This is separate from general audio.'},
   {key:'music',label:'Paid music generation',description:'Permission is saved; no paid music adapter is connected yet. Suno remains unavailable.'},
 ];
-const keys=['RUNWAY_API_KEY','ELEVENLABS_API_KEY'];
+const keys=['RUNWAY_API_KEY','ELEVENLABS_API_KEY','HF_TOKEN'];
 const labels:Record<string,string>={
   OLLAMA_URL:'Local Ollama server URL',SCRIPT_WRITER_MODEL:'Script writing model',
   OLLAMA_MODEL:'Scene planning model',RUNWAY_MODEL:'Video model · Runway',
@@ -44,7 +45,7 @@ export function Admin({onClose}:{onClose:()=>void}) {
   return <div className="dashboard admin"><header><strong className="brand"><img className="brand-logo" src="/logo.svg" alt="" width="32" height="32"/>ScriptStudio · Admin</strong><span className="spacer"/><ThemeToggle/><button onClick={onClose}>Back to workspace</button></header>
     <main><h1>Models & credentials</h1><p>Choose the models used by each workflow. Changes apply to new requests; queued generation jobs keep their captured model.</p>
       {error&&<p role="alert" className="error">{error}</p>}{notice&&<p role="status" className="note">{notice}</p>}
-      {config&&<fieldset disabled={busy}>
+      <LocalModels/>{config&&<fieldset disabled={busy}>
         <section className="admin-section"><h2>Paid AI generation</h2>
           <label className="check"><input type="checkbox" role="switch" checked={config.paid_generation.enabled} onChange={e=>setConfig({...config,paid_generation:{...config.paid_generation,enabled:e.target.checked}})}/>Allow paid AI generation</label>
           <p className="note">Saving an enabled master switch and category authorizes new paid requests in that category. Credentials, compatible models, and project budgets are still required. Saving these switches does not start generation.</p>
@@ -75,11 +76,11 @@ export function Admin({onClose}:{onClose:()=>void}) {
         <section className="admin-section"><h2>API credentials</h2>
           <p>Keys are encrypted on the server and never returned to the browser. Leave a field blank to keep its current key.</p>
           {keys.map(key=><div key={key} className="credential">
-            <label>{key==='RUNWAY_API_KEY'?'Runway API key':'ElevenLabs API key'}<input type="password" autoComplete="new-password" maxLength={4096} value={credentials[key]||''} disabled={clear.includes(key)} placeholder="Enter a replacement key" onChange={e=>setCredentials({...credentials,[key]:e.target.value})}/></label>
+            <label>{key==='HF_TOKEN'?'Hugging Face access token':key==='RUNWAY_API_KEY'?'Runway API key':'ElevenLabs API key'}<input type="password" autoComplete="new-password" maxLength={4096} value={credentials[key]||''} disabled={clear.includes(key)} placeholder="Enter a replacement key" onChange={e=>setCredentials({...credentials,[key]:e.target.value})}/></label>
             <p className="muted">{config.credentials[key].configured?'Configured':'Not configured'} · {config.credentials[key].source==='admin'?'Saved in Admin':'Server environment'}</p>
             <label className="check"><input type="checkbox" checked={clear.includes(key)} onChange={e=>{
               setClear(e.target.checked?[...clear,key]:clear.filter(k=>k!==key));setCredentials({...credentials,[key]:''});
-            }}/>Clear stored {key==='RUNWAY_API_KEY'?'Runway':'ElevenLabs'} credential on save</label>
+            }}/>Clear stored {key==='HF_TOKEN'?'Hugging Face':key==='RUNWAY_API_KEY'?'Runway':'ElevenLabs'} credential on save</label>
           </div>)}
         </section>
         <button className="primary" onClick={()=>void run(async()=>{

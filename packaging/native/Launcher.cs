@@ -24,10 +24,24 @@ static class Program {
  public static NativeJob Job;
  public static string Url;
  static bool browserStarted;
+ public static string WorkspaceData(string name) {
+  if(name==null||!System.Text.RegularExpressions.Regex.IsMatch(name,"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"))
+   throw new ArgumentException("Workspace names must contain 1-64 letters, numbers, underscores or hyphens, starting with a letter or number.");
+  return Path.Combine(Root,"workspace-"+name.ToLowerInvariant());
+ }
  [STAThread] static int Main(string[] args) {
   Application.EnableVisualStyles();
+  bool autoStart=args.Length>0&&args[args.Length-1]=="--start";
+  if(autoStart)args=args.Take(args.Length-1).ToArray();
+  string workspace=null;
+  if(args.Length>0&&args[0]=="--workspace") {
+   try {
+    if(args.Length!=2)throw new ArgumentException("Use --workspace followed by one workspace name.");
+    Data=WorkspaceData(args[1]);workspace=args[1].ToLowerInvariant();args=new string[0];
+   } catch(Exception e) {Console.Error.WriteLine(e.Message);return 1;}
+  }
   bool owned;
-  using(var mutex=new Mutex(true,"Local\\ScriptStudio.NativeLauncher"+(args.Length>0?".Checks":""),out owned)) {
+  using(var mutex=new Mutex(true,"Local\\ScriptStudio.NativeLauncher"+(workspace!=null?".Workspace."+workspace:args.Length>0?".Checks":""),out owned)) {
    if(!owned) { MessageBox.Show("ScriptStudio is already running. Use its launcher window."); return 2; }
    try {
     if(args.Length>0) {
@@ -50,7 +64,7 @@ static class Program {
      }
      throw new Exception("Unknown argument");
     }
-    Application.Run(new Launcher()); return 0;
+    Application.Run(new Launcher(autoStart)); return 0;
    } catch(Exception e) { Log(e.ToString()); Console.Error.WriteLine(e.Message); if(args.Length==0)MessageBox.Show(e.Message,"ScriptStudio");return e is DiskSpaceException?3:1; }
    finally { if(Job!=null)Job.Dispose(); }
   }
@@ -250,11 +264,11 @@ class Launcher : Form {
  Button start=new Button {Text="Start studio",Width=125,Height=38,BackColor=Color.FromArgb(188,236,82),ForeColor=Color.Black};
  Button stop=new Button {Text="Stop studio",Width=120,Height=38};
  bool busy,closing;
- public Launcher() {
+ public Launcher(bool autoStart=false) {
   Text="ScriptStudio · Native Windows";Width=740;Height=480;StartPosition=FormStartPosition.CenterScreen;
   BackColor=Color.FromArgb(16,22,30);ForeColor=Color.White;Font=new Font("Segoe UI",10);
   Icon=new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("ScriptStudio.ico"));
-  var title=new Label{Text="ScriptStudio\nStandalone Windows studio · offline mock mode",Dock=DockStyle.Top,Height=78,Padding=new Padding(18,14,0,0),Font=new Font("Segoe UI",14)};
+  var title=new Label{Text="ScriptStudio\nStandalone Windows studio · local AI and mock workflows",Dock=DockStyle.Top,Height=78,Padding=new Padding(18,14,0,0),Font=new Font("Segoe UI",14)};
   var buttons=new FlowLayoutPanel{Dock=DockStyle.Bottom,Height=64,Padding=new Padding(10)};
   var open=new Button{Text="Open studio",Width=120,Height=38};
   var files=new Button{Text="Project files",Width=120,Height=38};
@@ -273,6 +287,7 @@ class Launcher : Form {
    if(closing)return;e.Cancel=true;if(busy)return;
    await Work(Program.Stop);closing=true;Close();
   };
+  if(autoStart)Shown+=async(s,e)=>await Work(()=>{Program.Start();Program.OpenStudio();});
  }
  async Task Work(Action action){
   if(busy)return;busy=true;start.Enabled=false;stop.Enabled=false;bool exit=false;

@@ -20,7 +20,7 @@ from .coordinator import GenerationCoordinator
 from .storage import LocalStorage, AssetRepository
 from .render import RenderService
 from .budget import BudgetService
-from .providers import get_provider, SubmissionUnknown, RateLimited
+from .providers import get_provider, SubmissionUnknown, RateLimited, processing_mode
 
 app = FastAPI(title='ScriptStudio', version='0.1.0',openapi_url='/api/openapi.json',docs_url='/api/docs')
 
@@ -129,7 +129,9 @@ def health():
 
 @app.get('/api/providers')
 def providers():
-    return {'live_enabled':paid_permissions()['enabled'], 'paid_generation':paid_permissions(),
+    from .local_models import LocalModelService
+    return {'local_models':LocalModelService().catalog()['models'], 'processing_modes':{'mock':'mock','kokoro':'local','wan':'local','ace_step':'local','stable_audio':'local','runway':'paid','elevenlabs':'paid','suno':'paid'},
+            'live_enabled':paid_permissions()['enabled'], 'paid_generation':paid_permissions(),
             'ollama_configured':bool(setting('OLLAMA_URL') and setting('OLLAMA_MODEL')),
             'script_writer_configured':bool(setting('OLLAMA_URL') and (setting('SCRIPT_WRITER_MODEL') or setting('OLLAMA_MODEL'))),
             'runway_configured':bool(setting('RUNWAY_API_KEY')),
@@ -340,13 +342,13 @@ def job_action(job_id: str,action: str):
         if action=='retry': GenerationCoordinator().retry(session,job)
         elif action=='cancel':
             if job.state in ('ready','canceled'): raise ValueError('Job already finished')
-            if job.state=='submitting' or job.state=='submission_outcome_unknown':
+            if processing_mode(job.provider)=='paid' and job.state in ('submitting','submission_outcome_unknown'):
                 raise ValueError('Submission outcome is uncertain. Reconcile before canceling; charges may already be incurred.')
-            if job.provider_id and job.provider not in ('mock','ffmpeg'):
+            if job.provider_id and processing_mode(job.provider)=='paid':
                 get_provider(job.kind,job.provider).cancel(job.provider_id)
             if job.attempts==0:job.reported_cost=0
             job.state='canceled'
-            job.error='Canceled locally; existing cost reservation retained because charges may already be incurred.'
+            job.error='Local generation canceled' if processing_mode(job.provider)!='paid' else 'Canceled locally; existing cost reservation retained because charges may already be incurred.'
             job.lease_until=0
         else: raise HTTPException(404)
         return detail(session,project.id)
@@ -421,3 +423,34 @@ def recover_asset(job_id: str,payload: RecoveredAsset):
         pid=project.id
     GenerationCoordinator().try_assembly(pid)
     with Session() as session:return detail(session,pid)
+
+
+class LocalModelAction(BaseModel):
+    accept_license: bool = False
+
+
+@app.get('/api/admin/local-models')
+def local_models():
+    from .local_models import LocalModelService
+    return LocalModelService().catalog()
+
+
+@app.post('/api/admin/local-models/{name}/{action}')
+def local_model_action(name: str,action: str,payload: LocalModelAction):
+    from .local_models import LocalModelService
+    return LocalModelService().action(name,action,payload.accept_license)
+
+
+class SoundEffectRequest(BaseModel):
+    prompt: str = Field(min_length=1,max_length=2000)
+    duration: float = Field(5,gt=0,le=11)
+    start: int = Field(0,ge=0)
+    seed: int | None = Field(None,ge=0,lt=2**31)
+
+
+@app.post('/api/projects/{project_id}/sound-effects')
+def sound_effect(project_id: str,payload: SoundEffectRequest):
+    with transaction() as session:
+        project=project_lock(session,project_id)
+        GenerationCoordinator().sound_effect(session,project,payload)
+        return detail(session,project_id)
