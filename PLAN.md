@@ -314,3 +314,20 @@ Actual production timing and the final export correctly exclude those directions
   repair feedback gives a direct coverage correction without Pydantic input dumps.
   Retesting with the exact project settings passed: park scene 3.48 seconds,
   two-scene script 4.55 seconds, all spoken text preserved.
+- Final deployed implementation: `6d12a3e5f6f5a365d2ad87241ec1aea0343e9685`,
+  native package `c931adacc1380dc2`, EXE SHA-256
+  `a28f9f7582095c3704b8e0dbb19c6e9b1fc6c89ee45bfaa5ab5ee135f2ddc9e0`.
+  The desktop shortcut launches the updated D: app. Upgrade comparison preserved
+  all 79 project documents (including the validation project), four ready models,
+  configured protected Hugging Face credentials, and the disabled paid master.
+  The old runtime stalled during shutdown; its database was stopped cleanly before
+  ending that process, and a read-only snapshot was compared after startup.
+- Final native Chromium UI validation passed through the real Ollama planning
+  endpoint using the exact park-project settings: one continuous shot, all 14
+  spoken words preserved, editor estimate ~6 seconds, no page errors. The original
+  park project remained unchanged; its exported MP4 still has SHA-256
+  `d84d7c9ac37bb73ba3b96fead5469877395e72207214313378e9d9f38090fd93`.
+  Evidence: workspace `planner-release-ui-verification.json`,
+  `planner-release-verification.json`, `planner-park-estimate.png`, and
+  `planner-live-storyboard.png`. Both desktop windows were visible, and the
+  Minecraft companion was resumed and verified running after validation.
