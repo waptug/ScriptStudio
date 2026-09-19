@@ -1,7 +1,7 @@
 """Generate reviewable script drafts without modifying a project's saved edit."""
-import re
 from pydantic import BaseModel, Field, field_validator
 from .local_llm import LocalOllama
+from .script_parser import require_spoken_script, WORDS_PER_SECOND
 
 
 class ScriptBrief(BaseModel):
@@ -25,18 +25,15 @@ class ScriptDraft(BaseModel):
     @classmethod
     def spoken_content(cls, value):
         value = value.strip()
-        if not re.sub(r'\[[^\]]*\]', '', value).strip():
-            raise ValueError('The draft must contain spoken narration')
-        # Keep a standalone visual cue with its following narration paragraph;
-        # the deterministic planner uses paragraph boundaries as scene boundaries.
-        return re.sub(r'(\[[^\]]+\])\s*\n\s*\n\s*(?=[^\[\s])', r'\1 ', value)
+        require_spoken_script(value)
+        return value
 
 
 class ScriptWriter:
     def generate(self, brief: ScriptBrief, visual_style: str) -> dict:
         """A draft is returned to the reviewer; generation never saves over a script."""
         client = LocalOllama(workflow='writer')
-        words = round(brief.target_seconds * 2.4)
+        words = round(brief.target_seconds * WORDS_PER_SECOND)
         instruction = (
             'Write a video narration script from the supplied creative brief. '
             'Return only the script as plain text. Use short paragraphs as scenes. '
@@ -51,6 +48,6 @@ class ScriptWriter:
         draft = client.generate(ScriptDraft, instruction, {
             **brief.model_dump(), 'visual_style': visual_style,
         }, temperature=0.7, structured=False)
-        spoken = re.sub(r'\[[^\]]*\]', '', draft.script)
+        estimate = require_spoken_script(draft.script).analysis()
         return {'script': draft.script, 'provider': 'ollama', 'model': client.model,
-                'estimated_seconds': round(len(spoken.split()) / 2.4)}
+                'estimated_seconds': estimate['estimated_seconds']}

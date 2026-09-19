@@ -96,17 +96,16 @@ def test_recover_uncertain_narration_from_import_without_resubmit(project_id):
 
 def test_ollama_structured_planning_contract(monkeypatch):
     import json
-    from studio.planner import OllamaScriptPlanner,LocalScriptPlanner
+    from studio.planner import OllamaScriptPlanner
     from studio.schemas import Settings
     monkeypatch.setenv('OLLAMA_URL','http://127.0.0.1:11434')
     monkeypatch.setenv('OLLAMA_MODEL','local-test-model')
-    board=LocalScriptPlanner().plan('The river flows.',Settings())
     def post(url,**kwargs):
         assert url=='http://127.0.0.1:11434/api/chat'
         body=kwargs['json']
         assert body['stream'] is False and 'properties' in body['format']
         assert body['messages'][1]['role']=='user'
-        return httpx.Response(200,json={'message':{'content':board.model_dump_json()}},request=httpx.Request('POST',url))
+        return httpx.Response(200,json={'message':{'content':json.dumps({'shots':[{'beat_indices':[0],'visual':'Flowing river','prompt':'A peaceful river at dawn','camera':'Slow pan'}]})}},request=httpx.Request('POST',url))
     monkeypatch.setattr(httpx,'post',post)
     result=OllamaScriptPlanner().plan('The river flows.',Settings())
     assert result.scenes[0].narration=='The river flows.'

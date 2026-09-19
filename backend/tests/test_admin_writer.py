@@ -53,7 +53,8 @@ def test_writer_uses_selected_model_and_does_not_modify_saved_project(project_id
     monkeypatch.setattr(httpx, 'post', post)
     response = client.post(f'/api/projects/{project_id}/script-draft', json={'prompt': 'Urban gardening', 'target_seconds': 30})
     assert response.status_code == 200 and response.json()['model'] == 'writer-model'
-    assert response.json()['script'] == '[A garden] Grow a little joy today.'
+    assert response.json()['script'] == '[A garden]\n\nGrow a little joy today.'
+    assert response.json()['estimated_seconds'] == 2
     after = client.get(f'/api/projects/{project_id}').json()
     assert before == after
     assert client.post(f'/api/projects/{project_id}/script-draft', json={'prompt': '   '}).status_code == 422

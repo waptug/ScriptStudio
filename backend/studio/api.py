@@ -95,6 +95,16 @@ class UpdateProject(BaseModel):
     settings: Settings
 
 
+class ScriptAnalysisRequest(BaseModel):
+    script: str = Field(max_length=50000)
+
+
+@app.post('/api/script-analysis')
+def script_analysis(payload: ScriptAnalysisRequest):
+    from .script_parser import parse_script
+    return parse_script(payload.script).analysis()
+
+
 class ReconcileRequest(BaseModel):
     provider_id: str = Field(min_length=1,max_length=100,pattern=r'^[a-zA-Z0-9_-]+$')
 

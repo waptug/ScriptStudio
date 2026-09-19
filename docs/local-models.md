@@ -65,3 +65,27 @@ to finish; loading time depends strongly on available RAM and disk speed.
 The first Stable Audio sample took about 55 seconds including model loading;
 its eight sampling steps took about 1.3 seconds. The output is 44.1 kHz stereo,
 and the app trims it to the requested duration without changing playback speed.
+
+## Scripts, visual directions, and speech estimates
+
+Write spoken words outside square brackets. Put footage directions in `[brackets]`;
+these guide planning and do not count toward narration or the speech estimate.
+Directions may span lines or contain nested brackets. Blank lines outside directions
+start new scenes. A direction-only paragraph applies to the next spoken paragraph;
+a trailing direction applies to the final scene. To speak literal brackets, write
+`\[like this\]`. An unfinished direction is excluded from the live word count and
+must be closed before planning or accepting an AI draft.
+
+The editor and AI writer use the same parser. Estimates assume 2.4 spoken words per
+second; final timing uses the generated narration's measured duration. For example,
+“Isn’t it just lovely out here today? Absolutely. This cool breeze is really
+refreshing.” is 14 spoken words, approximately 6 seconds, regardless of the length
+of its visual directions.
+
+Choose **Local Ollama model** under **Script planner**, then **Plan scenes & shots**.
+The AI chooses visuals and groups spoken passages into shots, one scene at a time.
+The app attaches the original spoken words and validates their order and coverage;
+planning does not rewrite dialogue. Some installed Ollama models reject constrained
+JSON generation. For that specific error, ScriptStudio requests ordinary JSON and
+validates it identically, allowing one correction attempt. If validation still
+fails, the saved script and storyboard remain intact and the error is shown.

@@ -282,3 +282,28 @@ played and sought the 5.875-second video, and reported no page errors.
 Observed UI issue: the rough script speech estimate includes bracketed visual
 directions (about 34 seconds displayed versus 5.85 seconds of measured narration).
 Actual production timing and the final export correctly exclude those directions.
+
+### Planner and spoken-script parsing repair (2026-09-19)
+
+- Replaced whole-script word counting and separate regex parsing with one backend
+  parser shared by the editor, draft estimates, and both local planners. Nested,
+  multiline, standalone, trailing, and unfinished visual notes have explicit
+  behavior; escaped brackets remain spoken text. The editor cancels stale analysis
+  requests and identifies unfinished directions before planning.
+- Ollama plans visuals using ordered source-beat references, one scene per request.
+  The app owns narration and rejects missing, repeated, or reordered references.
+  The installed gemma3:4b rejects schema-constrained generation with a vocabulary
+  error; an explicit compatibility path requests JSON, validates the same schema
+  and coverage, and permits one bounded repair. No deterministic fallback or paid
+  generation is used.
+- Real native Windows gemma3:4b validation passed for the exact reviewed park-bench
+  script (14 spoken words, ~6 seconds, one continuous shot, 4.84 seconds planning)
+  and a two-scene nested/multiline-direction script (two shots, 3.42 seconds).
+  Both retained every original spoken word and its order. Evidence is in
+  `D:\ScriptStudio\ScriptStudioNative\workspace-local-models\planner-validation.json`.
+- Current-source validation: 82 backend tests passed (three existing dependency
+  deprecation warnings); PostgreSQL reservation/concurrency acceptance passed;
+  frontend TypeScript/Vite build passed. All 12 browser cases passed across the
+  full run and the corrected save/reopen regression rerun, including stale
+  responses, notes-only scripts, incomplete notes, literal brackets, and the
+  existing production/edit/preview/export workflow.
