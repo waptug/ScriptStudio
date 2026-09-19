@@ -123,4 +123,10 @@ jobs before shutdown. Without that flag, use the Start studio button.
 The workstation desktop shortcut **ScriptStudio Local Models** targets
 `D:\ScriptStudio\ScriptStudio-Local-Models.exe --workspace local-models --start`.
 Its visible launcher/editor, three Ready model panels, real-video preview, and
-final export were verified. Old E: projects remain separate pending drive recovery.
+final export were verified. E:-only originals remain preserved; the D: workspace now includes the Docker projects described below.
+
+On 2026-09-19, the user selected the running Docker installation as the project
+source. Its 65 projects and media were copied into the D: local-model workspace
+while preserving the 10 projects already there. The 75-project dashboard,
+imported media playback, and a new native preview render passed. Backups and
+checksums are recorded in PLAN.md. E: originals and Docker data remain untouched.
