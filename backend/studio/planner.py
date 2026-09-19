@@ -93,7 +93,9 @@ class OllamaScriptPlanner(ScriptPlanner):
                     indices = [index for shot in self.shots for index in shot.beat_indices]
                     if indices != expected_indices:
                         raise ValueError('Local planner omitted, repeated, or reordered spoken beats. '
-                                         f'Use every beat index exactly once in this order: {expected_indices}')
+                                         f'Use every beat index exactly once in this order: {expected_indices}. '
+                                         f'For one continuous shot, set its beat_indices to {expected_indices}. '
+                                         'Beat indices refer to input text passages, not output shot numbers.')
                     return self
 
             plan = client.generate(SceneVisualPlan,
@@ -104,7 +106,9 @@ class OllamaScriptPlanner(ScriptPlanner):
                 'Do not return or rewrite narration. '
                 'Return a JSON object with one key: shots. Each shot has beat_indices (an '
                 'array of integers), visual (a string), prompt (a string), camera (a string). '
-                'Example: {"shots":[{"beat_indices":[0,1],"visual":"Two people on a sunny bench",'
+                'Beat indices identify input text passages, not output shot numbers. '
+                'Example using all the input passages in one continuous shot: '
+                '{"shots":[{"beat_indices":' + str(expected_indices) + ',"visual":"Two people on a sunny bench",'
                 '"prompt":"A natural wide shot in a summer park","camera":"Fixed camera"}]}. '
                 f'The required beat indices for this scene are {list(range(len(beats)))}. '
                 'Return only JSON, without markdown or commentary.',

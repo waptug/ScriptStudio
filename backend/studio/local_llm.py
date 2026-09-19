@@ -6,6 +6,7 @@ import re
 import socket
 from urllib.parse import urlparse
 import httpx
+from pydantic import ValidationError
 from .configuration import setting
 
 
@@ -86,9 +87,11 @@ class LocalOllama:
                         message = result.get('message')
                         content = message.get('content') if isinstance(message, dict) else None
                         if isinstance(content, str) and result.get('done') is not False and result.get('done_reason') != 'length':
+                            feedback = ('; '.join(error['msg'] for error in validation_error.errors(include_input=False, include_url=False))
+                                        if isinstance(validation_error, ValidationError) else str(validation_error))
                             body['messages'].extend([
                                 {'role': 'assistant', 'content': content},
-                                {'role': 'user', 'content': 'The previous response is invalid. Correct the following validation error and return only the complete corrected JSON object matching the required schema.\n' + str(validation_error)[:1500]},
+                                {'role': 'user', 'content': 'The previous response is invalid. Correct the following validation error and return only the complete corrected JSON object matching the required schema.\n' + feedback[:1500]},
                             ])
                             response = httpx.post(self.url + '/api/chat', json=body, timeout=180)
                             response.raise_for_status()

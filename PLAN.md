@@ -307,3 +307,10 @@ Actual production timing and the final export correctly exclude those directions
   full run and the corrected save/reopen regression rerun, including stale
   responses, notes-only scripts, incomplete notes, literal brackets, and the
   existing production/edit/preview/export workflow.
+- The first desktop smoke test exposed an additional prompt ambiguity with the
+  project's actual visual style: gemma3 treated source-beat indices as output-shot
+  numbers. Validation rejected that response without changing the project. The
+  prompt now includes a concrete example using all actual source indices, and
+  repair feedback gives a direct coverage correction without Pydantic input dumps.
+  Retesting with the exact project settings passed: park scene 3.48 seconds,
+  two-scene script 4.55 seconds, all spoken text preserved.
