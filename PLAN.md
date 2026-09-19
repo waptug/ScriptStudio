@@ -6,10 +6,12 @@
 - [x] Add native Windows dependency resolution and pinned-wheel extraction support.
 - [x] Verify D: has about 705 GiB free and passes a native Windows write test.
 - [x] Recover the exact native EXE to D: and verify/extract its embedded package.
-- [ ] Finish moving existing project data from E: and switch the desktop shortcut.
-- [ ] Resolve all model manifests and install alongside the native app on D:.
-- [ ] Verify actual narration, video, music, and sound-effect generation on Windows.
-- [ ] Verify local writing/planning, UI workflow, preview/export, and desktop launch.
+- [ ] Finish moving existing project data from E: when the drive is readable.
+- [x] Install Kokoro, Wan, and ACE-Step alongside the native app on D:.
+- [x] Verify actual narration, video, and music generation on Windows.
+- [ ] Install and verify Stable Audio sound effects after upstream authorization.
+- [x] Verify local writing/planning, UI workflow, preview/export, and desktop launch.
+- [x] Create a separate D: local-model workspace and desktop shortcut.
 - [ ] Obtain Stable Audio upstream access and an authorized token through Admin.
 
 Installation is not complete. Two native resolver attempts failed with Windows
@@ -38,13 +40,26 @@ ftfy/imageio and its additional wheels match a native Windows dependency report.
 Stable Audio public runtime resolution succeeded; gated weights remain pending.
 The launcher now supports a separate portable `--workspace local-models`; native
 extraction, archive-safety, free-space, and workspace-path checks passed on D:.
-Its desktop shortcut and final packaged deployment are still pending.
+Release source `953ad85` is packaged at
+`D:\ScriptStudio\ScriptStudio-Local-Models.exe` (SHA-256
+`b9386cee473e05e04acab6ead027753a7d94d429bd4fd1a98a3915da4ac6b323`),
+with verified extracted package `5741f0b16a3970ac`. The desktop shortcut
+**ScriptStudio Local Models** starts `--workspace local-models --start`.
+The stopped validation database/media moved to `workspace-local-models`; all
+8 projects and all 3 ready model states survived. Shortcut launch and a second
+clean restart passed, with healthy services at `http://127.0.0.1:50757`, paid
+permissions off, and visible launcher/editor windows. Packaged Edge checks
+confirmed all 3 Ready panels, Stable Audio unavailable, and advancing playback
+of a real Wan/Kokoro preview without page errors. Fresh Edge profile startup
+stalled on this host; reusing the previously verified isolated profile resolved
+visible startup, with both original profiles preserved. D: has about 646.7 GiB
+free after installation. The original Docker desktop shortcut is unchanged.
 The user subsequently selected D:. Its native application is verified at
 `D:\ScriptStudio\ScriptStudio-Native-Windows-x64.exe`, recovered from the local
 backup whose SHA-256 matches E:'s recorded application checksum. Package
 `c59cb3999706cb58` successfully verified and extracted there. E: reads stalled
 during project-data migration, so the source remains preserved and the desktop
-shortcut has not yet been switched. The first bulk-copy attempt left a locked,
+original shortcut remains unchanged; the new local-model shortcut uses its own workspace. The first bulk-copy attempt left a locked,
 unverified `D:\ScriptStudio\ScriptStudio.exe`; do not use that partial file.
 
 - [x] 1. Foundation: typed project/timeline models, PostgreSQL migrations, storage, Compose.

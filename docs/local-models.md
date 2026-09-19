@@ -5,11 +5,20 @@ models** to install each model. Wait for **Ready** before selecting it in a
 project. Downloads include an isolated Python runtime and pinned weights; Resume
 continues interrupted downloads and Verify checks the installed files.
 
-On this workstation, the installation is under `D:\ScriptStudio`. Keep the EXE
-and its `ScriptStudioNative` folder together. The old E: project migration is
-still incomplete, so the development verification workspace is separate from
-existing projects. Model downloads and caches are shared under
-`ScriptStudioNative\local-models`.
+On this workstation, double-click **ScriptStudio Local Models** on the desktop.
+It launches `D:\ScriptStudio\ScriptStudio-Local-Models.exe` and opens the editor
+at `http://127.0.0.1:50757`. Keep the launcher open while working; use **Stop
+studio** or close it to finish active jobs and stop safely.
+
+Projects are in `ScriptStudioNative\workspace-local-models`; installed media
+models and caches are in `ScriptStudioNative\local-models`. Keep the EXE and
+its `ScriptStudioNative` folder together, and close the app before moving them.
+The old E: project migration is still incomplete; those originals are preserved
+and are separate from this workspace. Kokoro, Wan, and ACE-Step have all produced
+real media here. Stable Audio remains pending upstream access.
+
+Open **Real local Wan video verification** to inspect the completed local-video
+example and its narrated preview.
 
 | Task | Model | Where to use it |
 | --- | --- | --- |
@@ -18,7 +27,7 @@ existing projects. Model downloads and caches are shared under
 | Narration | Kokoro-82M | Project settings: select Kokoro and a stock voice, save, plan, then start production. Visual directions in brackets are excluded from speech. |
 | Video | Wan 2.1 T2V-1.3B | Project settings: select Wan, save, plan, review each shot prompt, then start production. The preset generates 832 × 480 video with 81 frames at 16 fps. |
 | Music | ACE-Step 1.5 | Project settings: select ACE-Step, enter the music prompt and optional lyrics, save, then start production. Empty lyrics request instrumental music. |
-| Sound effects | Stable Audio Open Small | Media library: expand **Generate a local sound effect**, describe the sound in English, choose up to 11 seconds, and generate at the playhead. |
+| Sound effects | Stable Audio Open Small (pending access) | After installation, Media library: expand **Generate a local sound effect**, describe the sound in English, choose up to 11 seconds, and generate at the playhead. |
 
 Choose providers before starting production. Narration determines the timing;
 the app does not speed up speech to match footage. Generated assets appear in

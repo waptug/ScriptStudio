@@ -54,7 +54,7 @@ without starting services.
 
 ### Portable Windows storage and free space
 
-Local media-model installation is being completed for the existing app under
+Three local media models are installed and generation-tested for the app under
 `D:\ScriptStudio` (changed from E: after drive failures). The current source includes Admin controls and model adapters,
 but no model should be considered installed until its pinned runtime/weights are
 present and real generation succeeds. `resolve_local_models.py` resolves Kokoro,
@@ -119,3 +119,8 @@ recovery is pending. Close the app before moving any workspace directory.
 The optional final `--start` flag starts the services and opens the studio when
 the launcher appears. Stop studio and closing the launcher still drain active
 jobs before shutdown. Without that flag, use the Start studio button.
+
+The workstation desktop shortcut **ScriptStudio Local Models** targets
+`D:\ScriptStudio\ScriptStudio-Local-Models.exe --workspace local-models --start`.
+Its visible launcher/editor, three Ready model panels, real-video preview, and
+final export were verified. Old E: projects remain separate pending drive recovery.
