@@ -250,3 +250,35 @@ complete third-party corresponding-source redistribution audits are not claimed.
 - [x] Extract directly from the embedded ZIP; report insufficient space and close gracefully.
 - [x] Keep the browser profile/download defaults portable; identify legacy project data.
 - [x] Validate native extraction, low-space refusal, and Windows app workflows (51 backend / 10 browser tests).
+
+## Park-bench local workflow test — 2026-09-19
+
+User prompt: “A man and a women sitting on a park bench in summer time talking
+about the weather”. Project: **Summer Park Bench — Local System Test**
+(`8baa8ef5-cd47-4dbc-9302-df3df193e2f7`). Gemma3:4b generated a draft; review
+kept a short weather exchange and one continuous shot. Ollama planning twice
+failed the exact-narration preservation check, so deterministic planning was
+used and the storyboard reviewed before production. This is a fallback success,
+not a passing Ollama planner test for this script.
+
+All four native local media jobs completed without retries: Kokoro narration
+70.45 seconds, Stable Audio ambience 81.34 seconds, Wan video 1933.33 seconds,
+and ACE-Step music 160.53 seconds. The video contains 81 frames at 832 × 480,
+16 fps; inspected frames show two adults on a bench in a sunny leafy park,
+turning toward one another. The camera is mostly behind the people and the
+colors are strongly saturated. Dialogue uses one narration voice, without lip
+synchronization. The 5.85-second speech is not accelerated: the 94-frame final
+timeline is 5.875 seconds and holds the last video frame for the remaining time.
+Music and ambience levels were reduced, with short fades, before export.
+
+Native OpenShot render `a54501bc-3323-4586-8a3d-efa35cda38f0` completed and its
+MP4 was downloaded through the app: 768,274 bytes, H.264 video with audio,
+SHA-256 `d84d7c9ac37bb73ba3b96fead5469877395e72207214313378e9d9f38090fd93`.
+The mixed audio is non-silent (-25.6 dB mean, -9.1 dB peak). User copy:
+`D:\ScriptStudio\ScriptStudioNative\downloads\Summer-Park-Bench-local-test.mp4`.
+Paid calls: none. The authorized companion pause was reversed after GPU work.
+Native Chrome verified all four populated media tracks, built the preview,
+played and sought the 5.875-second video, and reported no page errors.
+Observed UI issue: the rough script speech estimate includes bracketed visual
+directions (about 34 seconds displayed versus 5.85 seconds of measured narration).
+Actual production timing and the final export correctly exclude those directions.
