@@ -42,7 +42,8 @@ SPECS = {
         'repo': 'stabilityai/stable-audio-open-small',
         'requirements': ['torch==2.7.1+cu126', 'torchaudio==2.7.1+cu126',
             'torchvision==0.22.1+cu126', 'numpy==1.26.4',
-            'stable-audio-tools==0.0.20', 'transformers==4.57.6', 'soundfile==0.13.1'],
+            'stable-audio-tools==0.0.20', 'transformers==4.57.6', 'soundfile==0.13.1',
+            'pytorch-lightning==2.5.5', 'torchmetrics==0.11.4'],
         'index': 'https://download.pytorch.org/whl/cu126',
         'python_version': '3.10.11', 'python_tag': 'python310', 'gated': True,
     },
@@ -132,6 +133,21 @@ def model_files(name, spec):
         if spec.get('gated'): item['gated'] = True
         artifacts.append(item)
     if not artifacts: raise RuntimeError('No model artifacts found')
+    if name == 'stable_audio':
+        # The frozen text encoder is not included in the audio checkpoint.
+        encoder = 'google-t5/t5-base'
+        metadata = json.loads(get('https://huggingface.co/api/models/' + encoder + '?blobs=true'))
+        wanted = {'config.json', 'model.safetensors', 'spiece.model', 'tokenizer.json'}
+        for entry in metadata['siblings']:
+            filename = entry['rfilename']
+            if filename not in wanted: continue
+            url = f"https://huggingface.co/{encoder}/resolve/{metadata['sha']}/{filename}"
+            path = 'model/t5-base/' + filename
+            lfs = entry.get('lfs')
+            artifacts.append(dict(url=url, path=path, size=lfs['size'], sha256=lfs['sha256'])
+                             if lfs else artifact(url, path))
+            wanted.remove(filename)
+        if wanted: raise RuntimeError('Missing T5 encoder artifacts: ' + ', '.join(sorted(wanted)))
     return revision, artifacts
 
 

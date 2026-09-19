@@ -24,7 +24,7 @@ The Docker installation remains unchanged and running. The existing
 **ScriptStudio Local Models** desktop shortcut opens the combined D: workspace.
 No paid generation or GPU-model inference was needed for this migration.
 
-## Local media models on D: (in progress)
+## Local media models on D:
 
 - [x] Confirm Windows RTX 3060 12 GB and E: free-space report (about 2.8 TiB).
 - [x] Add native Windows dependency resolution and pinned-wheel extraction support.
@@ -34,13 +34,14 @@ No paid generation or GPU-model inference was needed for this migration.
   Recovery of any E:-only material is deferred; originals remain untouched.
 - [x] Install Kokoro, Wan, and ACE-Step alongside the native app on D:.
 - [x] Verify actual narration, video, and music generation on Windows.
-- [ ] Install and verify Stable Audio sound effects after upstream authorization.
+- [x] Install and verify Stable Audio sound effects after upstream authorization.
 - [x] Verify local writing/planning, UI workflow, preview/export, and desktop launch.
 - [x] Create a separate D: local-model workspace and desktop shortcut.
 - [x] User confirmed Stable Audio upstream access approval.
-- [ ] Save an authorized Hugging Face token through Admin, then finish Stable Audio installation.
+- [x] Save an authorized Hugging Face token through Admin and confirm gated access.
+- [x] Finish Stable Audio installation and real sound-effect validation.
 
-Installation is not complete. Two native resolver attempts failed with Windows
+All four models have now produced real media on D:. Two initial native resolver attempts failed with Windows
 error 21 (device not ready) creating
 `E:\ScriptStudio\ScriptStudioNative\model-build`. Windows confirms the existing
 app folder is a regular directory, not a junction. Kokoro, Wan, and ACE-Step now have pinned native Windows manifests. Kokoro
@@ -55,8 +56,7 @@ planning both passed with gemma3:4b in the separate validation workspace.
 The backend suite passed 59 tests; PostgreSQL concurrency checks, frontend build,
 and all 10 browser tests against the Docker app passed (two Admin selectors were
 updated for the model panels). Native Admin readiness and a rendered preview with real Kokoro narration
-were verified in Edge, including advancing video playback. Sound effects remain
-unverified pending the protected token and installation. Real Wan/Kokoro final export passed through libopenshot and downloaded through
+were verified in Edge, including advancing video playback. Stable Audio sound effects are now verified with the authorized protected token. Real Wan/Kokoro final export passed through libopenshot and downloaded through
 the app as a 582,443-byte MP4 (SHA-256
 `35d36fe43f1f901fb8d72673eccfc9c2495d30ec8082fa2dc6598a95304b8454`). ACE-Step checkpoint code pinning, strict offline initialization, and additional
 CPU offload passed a second real generation: a 10-second sample was trimmed to
@@ -64,7 +64,27 @@ CPU offload passed a second real generation: a 10-second sample was trimmed to
 checkpoint code hashes remained unchanged afterward. Wan's runtime now includes
 ftfy/imageio and its additional wheels match a native Windows dependency report.
 Stable Audio public runtime resolution succeeded; the user has approved access,
-but the protected Admin token is still not configured, so installation remains pending.
+and the protected Admin token now passes account and gated-model authorization.
+The installer now pins the separate T5-base encoder/tokenizer and loads it from
+a local path under the offline inference environment. Stable Audio installation
+and real generation validation passed. Its 70-artifact manifest includes the
+Python 3.10 runtime, missing upstream Lightning/torchmetrics dependencies, and
+separate T5 encoder/tokenizer. The deeper readiness probe imports the actual
+diffusion implementation, not only the package namespace.
+
+On 2026-09-19, project `9435f08e-64c2-46c9-82d8-53690fb309c2` generated
+asset/job `fb144a72-54a6-4bfa-b2bb-391686d36feb`: five seconds of real 44.1 kHz
+stereo sound, 54.62 seconds elapsed, peak CUDA allocation 2,808,555,008 bytes.
+The surviving SFX placeholder received the selected take at frame 0 for 120
+frames at 24 fps. Original audio measured -19.8 dB mean volume. Native OpenShot
+export `0ce3de11-dd26-47b7-a4cc-84fdabbd3d89` produced a 94,687-byte MP4 with
+non-silent audio. The separately authorized Minecraft companion pause was
+reversed after GPU validation; the companion is running again. No paid calls.
+Current source backend checks: 59 passed; PostgreSQL concurrency and frontend
+build passed. Browser suite: nine passed initially; the workflow exceeded its
+90-second production wait under installation load, then passed on targeted rerun.
+Native Chrome confirmed four Ready model panels, an enabled sound-effect
+generator, and advancing five-second preview playback with no page errors.
 The launcher now supports a separate portable `--workspace local-models`; native
 extraction, archive-safety, free-space, and workspace-path checks passed on D:.
 Release source `953ad85` is packaged at

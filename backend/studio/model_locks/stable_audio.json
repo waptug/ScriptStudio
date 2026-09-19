@@ -1,0 +1,495 @@
+{
+  "revision": "a92dda9dc1fe426e0a482c4c3c5be5e78928d0b01eea3e3431aee26113cdd613",
+  "model_revision": "dc620d91535857b72ebb59b4ca45978db6d417f5",
+  "python_tag": "python310",
+  "python_paths": [],
+  "artifacts": [
+    {
+      "url": "https://www.python.org/ftp/python/3.10.11/python-3.10.11-embed-amd64.zip",
+      "path": "downloads/python-3.10.11-embed-amd64.zip",
+      "size": 8629277,
+      "sha256": "608619f8619075629c9c69f361352a0da6ed7e62f83a0e19c63e0ea32eb7629d",
+      "extract": "runtime"
+    },
+    {
+      "url": "https://download-r2.pytorch.org/whl/cu126/torch-2.7.1%2Bcu126-cp310-cp310-win_amd64.whl",
+      "path": "downloads/torch-2.7.1+cu126-cp310-cp310-win_amd64.whl",
+      "size": 2716938639,
+      "sha256": "30119a54e1b4ccefe20dfe5d4b13f6aef76c17ec605b40e26d39789db00906f2",
+      "wheel": true
+    },
+    {
+      "url": "https://download-r2.pytorch.org/whl/cu126/torchaudio-2.7.1%2Bcu126-cp310-cp310-win_amd64.whl",
+      "path": "downloads/torchaudio-2.7.1+cu126-cp310-cp310-win_amd64.whl",
+      "size": 4218124,
+      "sha256": "9c6e00c79c09572a65eb54652d12f00fa79df63847552f61f10b7705fd0aca0b",
+      "wheel": true
+    },
+    {
+      "url": "https://download-r2.pytorch.org/whl/cu126/torchvision-0.22.1%2Bcu126-cp310-cp310-win_amd64.whl",
+      "path": "downloads/torchvision-0.22.1+cu126-cp310-cp310-win_amd64.whl",
+      "size": 6334156,
+      "sha256": "9f571c9afbe6431a1eaf163885cdb7bf46eb482ed36e050bb0e40cc41e16de01",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/19/77/538f202862b9183f54108557bfda67e17603fc560c384559e769321c9d92/numpy-1.26.4-cp310-cp310-win_amd64.whl",
+      "path": "downloads/numpy-1.26.4-cp310-cp310-win_amd64.whl",
+      "size": 15808905,
+      "sha256": "b97fe8060236edf3662adfc2c633f56a08ae30560c56310562cb4f95500022d5",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/9a/4f/78ea0c432031790e7256dad4b17d4dd14b9a5b51b29beb4aad7602f4c004/stable_audio_tools-0.0.20-py3-none-any.whl",
+      "path": "downloads/stable_audio_tools-0.0.20-py3-none-any.whl",
+      "size": 310924,
+      "sha256": "c1b3c81b4b3bcdc7a9b57174e86590fc46962457ddc650f84cd2718c5c51bc24",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/03/b8/e484ef633af3887baeeb4b6ad12743363af7cce68ae51e938e00aaa0529d/transformers-4.57.6-py3-none-any.whl",
+      "path": "downloads/transformers-4.57.6-py3-none-any.whl",
+      "size": 11993498,
+      "sha256": "4c9e9de11333ddfe5114bc872c9f370509198acf0b87a832a0ab9458e2bd0550",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/14/e9/6b761de83277f2f02ded7e7ea6f07828ec78e4b229b80e4ca55dd205b9dc/soundfile-0.13.1-py2.py3-none-win_amd64.whl",
+      "path": "downloads/soundfile-0.13.1-py2.py3-none-win_amd64.whl",
+      "size": 1019162,
+      "sha256": "1e70a05a0626524a69e9f0f4dd2ec174b4e9567f4d8b6c11d38b5c289be36ee9",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/04/f6/99a5c66478f469598dee25b0e29b302b5bddd4e03ed0da79608ac964056e/pytorch_lightning-2.5.5-py3-none-any.whl",
+      "path": "downloads/pytorch_lightning-2.5.5-py3-none-any.whl",
+      "size": 832431,
+      "sha256": "0b533991df2353c0c6ea9ca10a7d0728b73631fd61f5a15511b19bee2aef8af0",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/fb/47/6e9f9b41c48750a45ad07cc6d43a2979bfc09e6989656aece97cc59cbef1/torchmetrics-0.11.4-py3-none-any.whl",
+      "path": "downloads/torchmetrics-0.11.4-py3-none-any.whl",
+      "size": 519162,
+      "sha256": "45f892f3534e91f3ad9e2488d1b05a93b7cb76b7d037969435a41a1f24750d9a",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/b8/8e/8dd4d6de0fbba9d8f10d7b655be0578d5bda6e4db425210c265b0ea6c804/alias_free_torch-0.0.6-py3-none-any.whl",
+      "path": "downloads/alias_free_torch-0.0.6-py3-none-any.whl",
+      "size": 9659,
+      "sha256": "3a77e81147caf00f0b05483498e672ad3623b05800b82ace163d7adecac8b033",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/38/71/c13ea695a4393639830bf96baea956538ba7a9d06fcce7cef10bfff20f72/importlib_resources-5.12.0-py3-none-any.whl",
+      "path": "downloads/importlib_resources-5.12.0-py3-none-any.whl",
+      "size": 36211,
+      "sha256": "7b1deeebbf351c7578e09bf2f63fa2ce8b5ffec296e0d349139d43cca061a81a",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/35/12/f1a4f72b5d71497e4200e71e253cc747077d8570b55693faaa7b81fb6dff/PyWavelets-1.4.1-cp310-cp310-win_amd64.whl",
+      "path": "downloads/PyWavelets-1.4.1-cp310-cp310-win_amd64.whl",
+      "size": 4162789,
+      "sha256": "91d3d393cffa634f0e550d88c0e3f217c96cfb9e32781f2960876f1808d9b45b",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/21/8c/54bd0e155ec945cd8bcf387c25b2d337b345f2e56939336d71183dc1804f/sentencepiece-0.1.99-cp310-cp310-win_amd64.whl",
+      "path": "downloads/sentencepiece-0.1.99-cp310-cp310-win_amd64.whl",
+      "size": 977541,
+      "sha256": "14b0eccb7b641d4591c3e12ae44cab537d68352e4d3b6424944f0c447d2348d5",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/4e/35/0ea5e3611e0b63766a56f81e7bc5cfa05c52e3a3f0b8d66b25c7262aedae/v_diffusion_pytorch-0.0.2-py3-none-any.whl",
+      "path": "downloads/v_diffusion_pytorch-0.0.2-py3-none-any.whl",
+      "size": 20515,
+      "sha256": "875b0980a0172f25087fdb15fb4d9423203b5c148f7063ed8891a9272a8144d4",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/58/00/73aa281d6a7dfed26d4adce6d8dd4b7ceb8b0f805f174a66e942c590b81c/vector_quantize_pytorch-1.14.41-py3-none-any.whl",
+      "path": "downloads/vector_quantize_pytorch-1.14.41-py3-none-any.whl",
+      "size": 37892,
+      "sha256": "b774b60f2ca61ac000f007a7e189b8ff735c12f20fc91c8277a55889cc0c4db7",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/a8/af/48ac8483240de756d2438c380746e7130d1c6f75802ef22f3c6d49982787/huggingface_hub-0.36.2-py3-none-any.whl",
+      "path": "downloads/huggingface_hub-0.36.2-py3-none-any.whl",
+      "size": 566395,
+      "sha256": "48f0c8eac16145dfce371e9d2d7772854a4f591bcb56c9cf548accf531d54270",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/94/b8/f1f62a5e3c0ad2ff1d189590bfa4c46b4f3b6e49cef6f26c6ee4e575394d/setuptools-80.10.2-py3-none-any.whl",
+      "path": "downloads/setuptools-80.10.2-py3-none-any.whl",
+      "size": 1064234,
+      "sha256": "95b30ddfb717250edb492926c92b5221f7ef3fbcc2b07579bcd4a27da21d0173",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/65/71/0670843133a43d43070abeb1949abfdef12a86d490bea9cd9e18e37c5ff7/tokenizers-0.22.2-cp39-abi3-win_amd64.whl",
+      "path": "downloads/tokenizers-0.22.2-cp39-abi3-win_amd64.whl",
+      "size": 2747786,
+      "sha256": "c9ea31edff2968b44a88f97d784c2f16dc0729b8b143ed004699ebca91f05c48",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/ba/0b/644a2ec1a4eaba49c2939410bb1eb1d25b09d6d0582f5d2f95c537043725/cffi-2.1.1-cp310-cp310-win_amd64.whl",
+      "path": "downloads/cffi-2.1.1-cp310-cp310-win_amd64.whl",
+      "size": 185082,
+      "sha256": "a48d62ab9d6f4f98c983223a547af44be6ca3691074c31cecced6facd3ba2dc1",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/2a/09/f8d8f8f31e4483c10a906437b4ce31bdf3d6d417b73fe33f1a8b59e34228/einops-0.8.2-py3-none-any.whl",
+      "path": "downloads/einops-0.8.2-py3-none-any.whl",
+      "size": 65638,
+      "sha256": "54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/d0/28/6768d342b2b888f9facdddbd430daf015cab936e2598281ab436b1be1b4a/einx-0.4.3-py3-none-any.whl",
+      "path": "downloads/einx-0.4.3-py3-none-any.whl",
+      "size": 163766,
+      "sha256": "47ce54a0144f6dffcfacdd8fe2cc9e2e5e6485dda2471330ab75ee747dd22f39",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/6c/c0/a98505f18594f1bce828bb159cec0fcf9860562f1a2c85913409fc8f3d9e/fsspec-2026.9.0-py3-none-any.whl",
+      "path": "downloads/fsspec-2026.9.0-py3-none-any.whl",
+      "size": 221738,
+      "sha256": "8dd6e646e99ea382bd85f97a45e6b526a442d79423a7dc673f1e2756d05fcb5f",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/d8/15/fe5b8f6a71ae112bc677163d0b0701bda5dc15005249582258ede0eb88c7/aiohttp-3.14.3-cp310-cp310-win_amd64.whl",
+      "path": "downloads/aiohttp-3.14.3-cp310-cp310-win_amd64.whl",
+      "size": 480460,
+      "sha256": "bdd0e2834dce1a26c1bbe26464861e16bbe217042cbff619247c11594472518c",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/fe/ba/e2081de779ca30d473f21f5b30e0e737c438205440784c7dfc81efc2b029/async_timeout-5.0.1-py3-none-any.whl",
+      "path": "downloads/async_timeout-5.0.1-py3-none-any.whl",
+      "size": 6233,
+      "sha256": "39e3809566ff85354557ec2398b55e096c8364bacac9405a7a1fa429e77fe76c",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/f2/6e/bf53c6ca01c9b0192cf612333d52dfcd669b0691de34a54a0ca712c58a85/multidict-6.9.0-cp310-cp310-win_amd64.whl",
+      "path": "downloads/multidict-6.9.0-cp310-cp310-win_amd64.whl",
+      "size": 56666,
+      "sha256": "05f197459db34dee24ae7e3560affa5c6f93989805899c9bba13358b5116a12e",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/42/67/cb5ea1baa0c0ac60bda44ce59f601133154af2a2e67722d3517f8793855d/yarl-1.25.1-cp310-cp310-win_amd64.whl",
+      "path": "downloads/yarl-1.25.1-cp310-cp310-win_amd64.whl",
+      "size": 102929,
+      "sha256": "3f4d48a6112712973e676bd792121fee470e432d749177162d9949d5c9460a1b",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/71/43/1947f06babed6b3f1d7f38b0c767f52df66bfb2bc10b468c4a7de9eceff2/aiohappyeyeballs-2.7.1-py3-none-any.whl",
+      "path": "downloads/aiohappyeyeballs-2.7.1-py3-none-any.whl",
+      "size": 15038,
+      "sha256": "9243213661e29250eb41368e5daa826fc017156c3b8a11440826b2e3ed376472",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/fb/76/641ae371508676492379f16e2fa48f4e2c11741bd63c48be4b12a6b09cba/aiosignal-1.4.0-py3-none-any.whl",
+      "path": "downloads/aiosignal-1.4.0-py3-none-any.whl",
+      "size": 7490,
+      "sha256": "053243f8b92b990551949e63930a839ff0cf0b0ebbe0597b0f3fb19e1a0fe82e",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/64/b4/17d4b0b2a2dc85a6df63d1157e028ed19f90d4cd97c36717afef2bc2f395/attrs-26.1.0-py3-none-any.whl",
+      "path": "downloads/attrs-26.1.0-py3-none-any.whl",
+      "size": 67548,
+      "sha256": "c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/66/aa/3f04523fb189a00e147e60c5b2205126118f216b0aa908035c45336e27e4/frozenlist-1.8.0-cp310-cp310-win_amd64.whl",
+      "path": "downloads/frozenlist-1.8.0-cp310-cp310-win_amd64.whl",
+      "size": 43837,
+      "sha256": "667c3777ca571e5dbeb76f331562ff98b957431df140b54c85fd4d52eea8d8f6",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl",
+      "path": "downloads/idna-3.20-py3-none-any.whl",
+      "size": 69583,
+      "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/25/f4/ead6e0e37209b07c9baa3e984ccdb0348ca370b77cea3aaea8ddbb097e00/lightning_utilities-0.15.3-py3-none-any.whl",
+      "path": "downloads/lightning_utilities-0.15.3-py3-none-any.whl",
+      "size": 31906,
+      "sha256": "6c55f1bee70084a1cbeaa41ada96e4b3a0fea5909e844dd335bd80f5a73c5f91",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+      "path": "downloads/packaging-26.3-py3-none-any.whl",
+      "size": 129956,
+      "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/48/7c/8fa0039574c476d7c6fa57dd7c32a130436877c6ec1e5ce1cc8ec44878c1/pillow-12.3.0-cp310-cp310-win_amd64.whl",
+      "path": "downloads/pillow-12.3.0-cp310-cp310-win_amd64.whl",
+      "size": 7226887,
+      "sha256": "300557495eb45ebb8aec96c2da9c4be642fbf7cd937278b4013ba894ea8eb0eb",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/80/57/0a0b4b1122f4ed5bcd1c626d910003cdf5282c2a12f8a1cfa17970b3ded2/propcache-0.5.4-cp310-cp310-win_amd64.whl",
+      "path": "downloads/propcache-0.5.4-cp310-cp310-win_amd64.whl",
+      "size": 46589,
+      "sha256": "146f48a9e4812611a7581003b1a39de56c34967046310c4171a68ef908c9a745",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/2a/fa/926c003379b19fca39dd4634818b00dec6c62d87faf628d1394e137354d4/pyyaml-6.0.3-cp310-cp310-win_amd64.whl",
+      "path": "downloads/pyyaml-6.0.3-cp310-cp310-win_amd64.whl",
+      "size": 158561,
+      "sha256": "bdb2c67c6c1390b63c6ff89f210c8fd09d9a1217a465701eac7316313c915e4c",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/f4/0a/5061dde95447f00acdeeb39780b32def0ce380c3e725aeee1f5b37b788bb/regex-2026.9.10-cp310-cp310-win_amd64.whl",
+      "path": "downloads/regex-2026.9.10-cp310-cp310-win_amd64.whl",
+      "size": 278251,
+      "sha256": "e6b99181d184d0f5c7b36b8d12b94d1e9499cce6246594331f9edc5d2ea9fceb",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/1b/6d/3fba214c1e5e0f69991677ec3bc17023f0421776975e1de0c682dca475e2/safetensors-0.8.0-cp310-abi3-win_amd64.whl",
+      "path": "downloads/safetensors-0.8.0-cp310-abi3-win_amd64.whl",
+      "size": 355540,
+      "sha256": "096ec1a98435df7beb08853bb5aa9081a84f23d0adc67ed1a0a10550f608373f",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/a2/09/77d55d46fd61b4a135c444fc97158ef34a095e5681d0a6c10b75bf356191/sympy-1.14.0-py3-none-any.whl",
+      "path": "downloads/sympy-1.14.0-py3-none-any.whl",
+      "size": 6299353,
+      "sha256": "e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl",
+      "path": "downloads/mpmath-1.3.0-py3-none-any.whl",
+      "size": 536198,
+      "sha256": "a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/a7/03/921a3d3c75785aca9ebfbfcabfbc3a1be12e2ab5265deb026d55a5a3f83e/tqdm-4.70.1-py3-none-any.whl",
+      "path": "downloads/tqdm-4.70.1-py3-none-any.whl",
+      "size": 80199,
+      "sha256": "c293e525e6fef9c20e8728fd4612df02a0aa31bb5fe91ecd93e123b1b7bffa73",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl",
+      "path": "downloads/typing_extensions-4.16.0-py3-none-any.whl",
+      "size": 45571,
+      "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+      "wheel": true
+    },
+    {
+      "url": "https://download.pytorch.org/whl/colorama-0.4.6-py2.py3-none-any.whl",
+      "path": "downloads/colorama-0.4.6-py2.py3-none-any.whl",
+      "size": 25335,
+      "sha256": "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/1e/77/dc8c558f7593132cf8fefec57c4f60c83b16941c574ac5f619abb3ae7933/dill-0.4.1-py3-none-any.whl",
+      "path": "downloads/dill-0.4.1-py3-none-any.whl",
+      "size": 120019,
+      "sha256": "1e1ce33e978ae97fcfcff5638477032b801c46c7c65cf717f95fbc2248f79a9d",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/78/01/8da8dd078b354a89602a875d310a0d725dad92b5b4d61069576e0a0e02e4/einops_exts-0.0.4-py3-none-any.whl",
+      "path": "downloads/einops_exts-0.0.4-py3-none-any.whl",
+      "size": 3925,
+      "sha256": "6d310a4c858e459ebff8288580f90255d354cfa3bde22a53b59baae64b48cb95",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/29/33/af0635ab07fe83b1788a1dbe370ff3e226062495a998335cb18a1cac81aa/filelock-4.0.1-py3-none-any.whl",
+      "path": "downloads/filelock-4.0.1-py3-none-any.whl",
+      "size": 106219,
+      "sha256": "481a321a27bef441e23c53371c6abc8d7d16e26b97090074ba44f7538a3fd55a",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/94/27/c22d614332c61ace4406542787edafaf7df533c6f02d1de8979d35492587/frozendict-2.4.7-cp310-cp310-win_amd64.whl",
+      "path": "downloads/frozendict-2.4.7-cp310-cp310-win_amd64.whl",
+      "size": 37693,
+      "sha256": "dd518f300e5eb6a8827bee380f2e1a31c01dc0af069b13abdecd4e5769bd8a97",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/ab/6e/81d47999aebc1b155f81eca4477a616a70f238a2549848c38983f3c22a82/ftfy-6.3.1-py3-none-any.whl",
+      "path": "downloads/ftfy-6.3.1-py3-none-any.whl",
+      "size": 44821,
+      "sha256": "7c70eb532015cd2f9adb53f101fb6c7945988d023a085d127d1573dc49dd0083",
+      "wheel": true
+    },
+    {
+      "url": "https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl",
+      "path": "downloads/jinja2-3.1.6-py3-none-any.whl",
+      "size": 134899,
+      "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+      "wheel": true
+    },
+    {
+      "url": "https://download.pytorch.org/whl/markupsafe-3.0.3-cp310-cp310-win_amd64.whl",
+      "path": "downloads/markupsafe-3.0.3-cp310-cp310-win_amd64.whl",
+      "size": 15056,
+      "sha256": "c4ffb7ebf07cfe8931028e3e4c85f0357459a3f9f9490886198848f4fa002ec8",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/b9/54/dd730b32ea14ea797530a4479b2ed46a6fb250f682a9cfb997e968bf0261/networkx-3.4.2-py3-none-any.whl",
+      "path": "downloads/networkx-3.4.2-py3-none-any.whl",
+      "size": 1723263,
+      "sha256": "df5d4365b724cf81b8c6a7312509d0c22386097011ad1abe274afd5e9d3bbc5f",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/59/8b/fa7173e7749a57ff5a1008050aed1433874e4010a7537a1588883ad597d6/nnaudio-0.3.4-py3-none-any.whl",
+      "path": "downloads/nnaudio-0.3.4-py3-none-any.whl",
+      "size": 43847,
+      "sha256": "48db0c54443f4f3f54057d416bd9ba304110552b4bba32f897e864f55deaa87c",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/d1/84/55bc4881973d3f79b479a5a2e2df61c8c9a04fcb986a213ac9c02cfb659b/scipy-1.15.3-cp310-cp310-win_amd64.whl",
+      "path": "downloads/scipy-1.15.3-cp310-cp310-win_amd64.whl",
+      "size": 41259201,
+      "sha256": "9d61e97b186a57350f6d6fd72640f9e99d5a4a2b8fbf4b9ee9a841eab327dc13",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/0c/c3/44f3fbbfa403ea2a7c779186dc20772604442dde72947e7d01069cbe98e3/pycparser-3.0-py3-none-any.whl",
+      "path": "downloads/pycparser-3.0-py3-none-any.whl",
+      "size": 48172,
+      "sha256": "b727414169a36b7d524c1c3e31839a521725078d7b2ff038656844266160a992",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/a0/f4/c67b0b3f1b9245e8d266f0f112c500d50e5b4e83cb6f3b71b6528104182a/requests-2.34.2-py3-none-any.whl",
+      "path": "downloads/requests-2.34.2-py3-none-any.whl",
+      "size": 73075,
+      "sha256": "2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/d2/21/83fffb77864408b8bf0fe1ca603926401d6f8775a8e150b39aacc9958f8a/charset_normalizer-3.5.1-cp310-cp310-win_amd64.whl",
+      "path": "downloads/charset_normalizer-3.5.1-cp310-cp310-win_amd64.whl",
+      "size": 206030,
+      "sha256": "be47f99644b208bff7766314013f9acf57b056b04191d570d68ad14022cf5b1d",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl",
+      "path": "downloads/urllib3-2.8.0-py3-none-any.whl",
+      "size": 135717,
+      "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl",
+      "path": "downloads/certifi-2026.7.22-py3-none-any.whl",
+      "size": 136983,
+      "sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/79/c6/2e47f17fa4461ba047f5f38a592f39120c21e6af8786268b0be2ef870318/soxr-1.1.0-cp310-cp310-win_amd64.whl",
+      "path": "downloads/soxr-1.1.0-cp310-cp310-win_amd64.whl",
+      "size": 176571,
+      "sha256": "b2e94c713b7d96fb92841947b785bcee6606124bc852273fab70454b51bfe270",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/dd/1f/b67ebd7e19ffe259f05d3cf4547326725c3113d640c277030be3e9998d6f/torchsde-0.2.6-py3-none-any.whl",
+      "path": "downloads/torchsde-0.2.6-py3-none-any.whl",
+      "size": 61232,
+      "sha256": "19bf7ff02eec7e8e46ba1cdb4aa0f9db1c51d492524a16975234b467f7fc463b",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/73/54/d2805324fb746d8da86d3844bee4f55c0cfd6c136de61b713772d44c5bea/trampoline-0.1.2-py3-none-any.whl",
+      "path": "downloads/trampoline-0.1.2-py3-none-any.whl",
+      "size": 5173,
+      "sha256": "36cc9a4ff9811843d177fc0e0740efbd7da39eadfe6e50c9e2937cbc06d899d9",
+      "wheel": true
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/39/cc/9c0adc5861020de426ec71716b6c1bef8d90694b7d6d0a16202cdb1647f5/wcwidth-0.8.4-py3-none-any.whl",
+      "path": "downloads/wcwidth-0.8.4-py3-none-any.whl",
+      "size": 299474,
+      "sha256": "2097bb1d28a0ba8fe177c2eb607317f9b1627b03f33ebebfd3da670b337a65ba",
+      "wheel": true
+    },
+    {
+      "url": "https://huggingface.co/stabilityai/stable-audio-open-small/resolve/dc620d91535857b72ebb59b4ca45978db6d417f5/LICENSE",
+      "path": "model/LICENSE",
+      "size": 11852,
+      "sha256": "d6f6b1a4dce5c852bd6d7d9482d002baf0ccdb71e662250b73be9eec8764ee8d",
+      "gated": true
+    },
+    {
+      "url": "https://huggingface.co/stabilityai/stable-audio-open-small/resolve/dc620d91535857b72ebb59b4ca45978db6d417f5/model.safetensors",
+      "path": "model/model.safetensors",
+      "size": 1676829212,
+      "sha256": "0ee8b9edbe3104cb079dd163b62589d67d9c321ea8942cbbd81e6f7d3f390be2",
+      "gated": true
+    },
+    {
+      "url": "https://huggingface.co/stabilityai/stable-audio-open-small/resolve/dc620d91535857b72ebb59b4ca45978db6d417f5/model_config.json",
+      "path": "model/model_config.json",
+      "size": 5622,
+      "sha256": "105f33659c4def4804a8247666981892a69f9fb07724c180e11b63e688e7780c",
+      "gated": true
+    },
+    {
+      "url": "https://huggingface.co/google-t5/t5-base/resolve/a9723ea7f1b39c1eae772870f3b547bf6ef7e6c1/config.json",
+      "path": "model/t5-base/config.json",
+      "size": 1208,
+      "sha256": "46dd7cb62d29c81fb551e0ef1ea274c24a46ba441eeb948897706252933df033"
+    },
+    {
+      "url": "https://huggingface.co/google-t5/t5-base/resolve/a9723ea7f1b39c1eae772870f3b547bf6ef7e6c1/model.safetensors",
+      "path": "model/t5-base/model.safetensors",
+      "size": 891646390,
+      "sha256": "a90903540cc02cbeb7ff9f823f1a80eb778c7e22426a0e620b01c77a5ec8f5b4"
+    },
+    {
+      "url": "https://huggingface.co/google-t5/t5-base/resolve/a9723ea7f1b39c1eae772870f3b547bf6ef7e6c1/spiece.model",
+      "path": "model/t5-base/spiece.model",
+      "size": 791656,
+      "sha256": "d60acb128cf7b7f2536e8f38a5b18a05535c9e14c7a355904270e15b0945ea86"
+    },
+    {
+      "url": "https://huggingface.co/google-t5/t5-base/resolve/a9723ea7f1b39c1eae772870f3b547bf6ef7e6c1/tokenizer.json",
+      "path": "model/t5-base/tokenizer.json",
+      "size": 1389353,
+      "sha256": "d2acde0d8d71dd30a711834b07781b9c89feaac33fd332f60507699282740066"
+    }
+  ],
+  "expanded_bytes": 11350236096
+}

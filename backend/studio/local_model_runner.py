@@ -18,7 +18,11 @@ def main():
             from diffusers import WanPipeline
             import ftfy, imageio, imageio_ffmpeg
         elif name=='ace_step': from acestep.handler import AceStepHandler
-        elif name=='stable_audio': import stable_audio_tools
+        elif name=='stable_audio':
+            from stable_audio_tools.models.diffusion import create_diffusion_cond_from_config
+            from stable_audio_tools.inference.generation import generate_diffusion_cond
+            from transformers import T5EncoderModel, AutoTokenizer
+            import soundfile
         print(json.dumps({'cuda':torch.version.cuda,'ready':True}));return
     request=json.loads(Path(sys.argv[2]).read_text(encoding='utf-8'))
     base=Path(request['model_root']); model=base/'model'
@@ -90,9 +94,14 @@ def main():
         from stable_audio_tools.models.utils import load_ckpt_state_dict
         from stable_audio_tools.inference.generation import generate_diffusion_cond
         config=json.loads((model/'model_config.json').read_text())
+        for conditioner in config['model']['conditioning']['configs']:
+            if conditioner['type']=='t5':
+                if conditioner['config']['t5_model_name']!='t5-base':
+                    raise RuntimeError('Unsupported Stable Audio text encoder')
+                conditioner['config']['model_path']=str(model/'t5-base')
         network=create_model_from_config(config)
         network.load_state_dict(load_ckpt_state_dict(str(model/'model.safetensors')))
-        network.to('cuda').eval()
+        network.to('cuda').eval().requires_grad_(False)
         report('generating')
         audio=generate_diffusion_cond(network,steps=8,cfg_scale=1.0,conditioning=[{'prompt':request['prompt'],'seconds_total':request['duration']}],sample_size=config['sample_size'],sampler_type='pingpong',device='cuda',seed=request['seed'])
         audio=audio[0,:,:int(request['duration']*config['sample_rate'])].float().cpu()

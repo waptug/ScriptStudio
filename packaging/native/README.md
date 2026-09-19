@@ -54,21 +54,23 @@ without starting services.
 
 ### Portable Windows storage and free space
 
-Three local media models are installed and generation-tested for the app under
+All four local media models are installed and generation-tested for the app under
 `D:\ScriptStudio` (changed from E: after drive failures). The current source includes Admin controls and model adapters,
 but no model should be considered installed until its pinned runtime/weights are
 present and real generation succeeds. `resolve_local_models.py` resolves Kokoro,
-Wan, and ACE-Step dependencies using native Windows Python and keeps its downloads and
+Wan, ACE-Step, and Stable Audio dependencies using native Windows Python and keeps its downloads and
 pip cache in the directory passed with `--work`. It generates the manifests used
 by the app installer; it does not itself mark a model ready. Kokoro has generated real narration on Windows, ACE-Step has generated real music,
 Wan generated a real 81-frame 480p clip, and local Ollama writing/planning and
-native preview playback passed. Stable Audio setup remains pending upstream access.
+native preview playback passed. Stable Audio generated five seconds of real 44.1 kHz stereo sound effects and
+passed native MP4 export with non-silent audio. Its separate T5 encoder is pinned
+and loaded locally; inference runs with Hugging Face offline mode enabled.
 See [the local-model usage guide](../../docs/local-models.md).
 
 On this workstation, E: returned Windows error 21 (device not ready). D: passed
 a native write test and has ample space. The exact application backup has been
-recovered and its package verified on D:, but moving the previous project data
-still depends on readable access to E:. Stable Audio additionally requires upstream access and a token
+recovered and its package verified on D:. The current Docker projects were
+copied to D: as authorized; E:-only recovery is deferred. Stable Audio requires upstream access and a token
 saved through Admin. Do not place credentials in installer command lines.
 
 The native launcher resolves its EXE folder, independently of the current working
@@ -103,7 +105,9 @@ place those small test EXEs on a chosen drive.
 For a gated model, `resolve_local_models.py stable_audio --runtime-only --work <Windows-path>
 --locks <Windows-path>` prepares only its public dependency report. It does not
 access gated weights, create an installable manifest, or mark the model ready.
-The current Stable Audio runtime uses Python 3.10 with NumPy 1.26.4 for its pinned
+The current Stable Audio runtime pins PyTorch Lightning 2.5.5 and torchmetrics
+0.11.4 because stable-audio-tools imports its LoRA callbacks during inference.
+It uses Python 3.10 with NumPy 1.26.4 for its pinned
 PyWavelets dependency. Completing the model manifest still requires approved
 upstream access and a token supplied through the encrypted Admin configuration.
 

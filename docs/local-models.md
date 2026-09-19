@@ -16,11 +16,13 @@ its `ScriptStudioNative` folder together, and close the app before moving them.
 The current Docker projects have been copied into this workspace: 65 imported
 projects plus the 10 existing D: projects. Docker and the E: originals remain
 untouched. Migration backups are under `ScriptStudioNative\migrations`.
-Kokoro, Wan, and ACE-Step have all produced real media here. Stable Audio access
-is approved, but its protected Admin token and installation are still pending.
+All four media models have produced real media here: Kokoro narration, Wan
+video, ACE-Step music, and Stable Audio sound effects. The Hugging Face token is
+saved in the protected Admin credential field.
 
 Open **Real local Wan video verification** to inspect the completed local-video
-example and its narrated preview.
+example and its narrated preview. Open **Real local Stable Audio verification**
+for a five-second sound-effect sample and rendered preview.
 
 | Task | Model | Where to use it |
 | --- | --- | --- |
@@ -29,7 +31,7 @@ example and its narrated preview.
 | Narration | Kokoro-82M | Project settings: select Kokoro and a stock voice, save, plan, then start production. Visual directions in brackets are excluded from speech. |
 | Video | Wan 2.1 T2V-1.3B | Project settings: select Wan, save, plan, review each shot prompt, then start production. The preset generates 832 × 480 video with 81 frames at 16 fps. |
 | Music | ACE-Step 1.5 | Project settings: select ACE-Step, enter the music prompt and optional lyrics, save, then start production. Empty lyrics request instrumental music. |
-| Sound effects | Stable Audio Open Small (pending installation) | After installation, Media library: expand **Generate a local sound effect**, describe the sound in English, choose up to 11 seconds, and generate at the playhead. |
+| Sound effects | Stable Audio Open Small | Media library: expand **Generate a local sound effect**, describe the sound in English, choose up to 11 seconds, and generate at the playhead. |
 
 Choose providers before starting production. Narration determines the timing;
 the app does not speed up speech to match footage. Generated assets appear in
@@ -59,3 +61,7 @@ On the verified RTX 3060 12 GB workstation, the first five-second Wan sample
 took about 39 minutes including model loading under RAM pressure. Its 30
 generation steps took about 19 minutes. Start with one short shot and allow it
 to finish; loading time depends strongly on available RAM and disk speed.
+
+The first Stable Audio sample took about 55 seconds including model loading;
+its eight sampling steps took about 1.3 seconds. The output is 44.1 kHz stereo,
+and the app trims it to the requested duration without changing playback speed.
