@@ -364,3 +364,12 @@ Actual production timing and the final export correctly exclude those directions
   `installation-progress-ui-verification.json`,
   `installation-progress-release-verification.json`, and
   `installation-progress-final-verification.json` (not tracked in Git).
+
+### Queue phase progress without interrupting active jobs
+
+- Implement reusable colored phase bars for production queue and export jobs,
+  with legacy API support, measured step counts, reduced motion and both themes.
+- Frontend build and isolated native Windows Edge interaction test passed.
+- Deploy web assets only while Wan runs; retain old assets and record backend/Wan
+  process identities. Backend progress instrumentation is prepared separately and
+  must not be deployed until all queued and active jobs finish.
