@@ -343,9 +343,24 @@ Actual production timing and the final export correctly exclude those directions
 - Validation: full backend suite passed (86 tests), followed by 13 focused tests
   including a new slow-step heartbeat check; PostgreSQL concurrency check and
   frontend production build passed. Native Windows Edge progress/reconnect/cancel/
-  persisted-readiness interaction test passed. Packaged desktop verification pending.
+  persisted-readiness interaction test passed. Packaged desktop verification passed.
 
 - Native deployment preserved all 79 project documents and four Ready models.
   Repeated Install calls reused all four without changing their saved state.
   Split downloaded-file and installed-runtime verification labels after observing
   the real verification pass so per-stage percentage resets are explicit.
+
+- Final native build `290aca2` deployed through the desktop shortcut; SHA-256
+  `d6cf9eb271632cecccf241334b3c0d7fa62d8efe892ea64ecc3901ff1742d5ed`.
+  Both release restarts preserved all 79 project documents and four Ready models.
+  Windows Edge confirmed Installed/Repair controls, distinct verification labels,
+  and repeated Install requests that left all four saved installations unchanged.
+- Real Kokoro verification on the preceding progress build completed Ready with
+  435 observed status samples, 238 distinct heartbeat updates, measured file
+  progress, indeterminate runtime-probe feedback and no browser errors. The final
+  refinement changes stage labels only; its 13 focused backend tests and native
+  Edge stage-transition test passed. Final deployed browser smoke also passed.
+- Local evidence: `D:/ScriptStudio/ScriptStudioNative/workspace-local-models/`
+  `installation-progress-ui-verification.json`,
+  `installation-progress-release-verification.json`, and
+  `installation-progress-final-verification.json` (not tracked in Git).
