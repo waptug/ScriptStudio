@@ -418,3 +418,14 @@ Actual production timing and the final export correctly exclude those directions
   restarts and respects failed jobs and manual timeline changes.
 - Frontend build and 12 focused local-demo/job tests passed. Native deployment
   and real generation verification follow without interrupting existing jobs.
+
+- Native release `71adf93` deployed with all 82 pre-existing project documents and
+  four model-ready states preserved. Native Edge clicked the new dashboard button
+  successfully, with no page errors. Created project
+  `fa377d34-f338-4438-ad56-8885b2ed2587` (Introducing ScriptStudio).
+- Real Kokoro narration completed at 46.675 seconds. Verified exact 60.0-second
+  timeline, twelve Wan shots, and ACE-Step music; first Wan job entered Loading.
+  No mock providers were used. Video/music generation and final MP4 remain pending
+  in the durable queue and were deliberately left running without interruption.
+- Evidence: workspace-local-models/local-demo-started.json,
+  local-demo-generation-verification.json, local-demo-release-verification.json.
