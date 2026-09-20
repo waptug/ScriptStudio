@@ -392,3 +392,18 @@ Actual production timing and the final export correctly exclude those directions
   existing revision-checked timeline API. Automatic placement rules stay intact.
 
 - Add preview-driven timeline selection/scrolling and persistent clip renaming in queue, library and inspector. Native Edge fixtures passed highlight, rename and placement behavior. Bound native HTTP graceful shutdown so open SSE tabs cannot prevent shutdown; worker draining still completes before PostgreSQL stops.
+
+- Final native release `f4e6341` deployed through the desktop shortcut; SHA-256
+  `10a937ebb79fcc49707575a37e9e84e39b97064a82b81a2cf9b2188a37ad5507`.
+  All 81 existing project documents and four installed-model ready states were
+  preserved. The old idle backend needed recovery from an open SSE connection;
+  zero active/queued jobs were rechecked before stopping it and PostgreSQL was
+  shut down cleanly. The new package bounds HTTP shutdown while retaining worker
+  draining. No running generation was interrupted.
+- Native Edge live verification passed on a dedicated project: real Kokoro audio,
+  explicitly mock visuals/music, actual rendered MP4 playback, timeline insertion,
+  duplicate prevention, preview selection/highlight, persisted clip renaming, and
+  preservation of existing timeline items. All jobs ended Ready with enhanced
+  phase metadata. Focused rename/queue tests: 14 passed.
+- Local evidence: workspace-local-models/queue-progress-release-verification.json,
+  queue-native-verification.json and queue-ui-live-verification.json (untracked).
