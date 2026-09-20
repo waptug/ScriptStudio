@@ -108,7 +108,7 @@ def serve(root, data, requested_port):
         from starlette.staticfiles import StaticFiles
         import uvicorn
         app.mount('/', StaticFiles(directory=root / 'web', html=True), name='frontend')
-        server = uvicorn.Server(uvicorn.Config(app, host='127.0.0.1', port=config['port'], log_config=None))
+        server = uvicorn.Server(uvicorn.Config(app, host='127.0.0.1', port=config['port'], log_config=None, timeout_graceful_shutdown=5))
         worker = threading.Thread(target=work, args=(stop,), name='native-worker')
         worker.start()
         def monitor():

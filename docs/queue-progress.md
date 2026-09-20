@@ -50,3 +50,5 @@ Clips already placed show **On timeline** to avoid adding duplicate copies.
 Normal automatic placeholder filling remains controlled by the existing
 **Fill eligible placeholders automatically** setting; locked or replaced takes
 are not overwritten. Missing/unready assets do not show clip actions.
+
+Preview also selects and scrolls to an existing timeline placement, retaining the insertion point. Unplaced clips are labeled. Rename clip in the queue, media library or clip inspector updates the saved asset name everywhere it is placed, without changing the media file or timing. Concurrent stale renames are rejected.

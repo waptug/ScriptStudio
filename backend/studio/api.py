@@ -299,6 +299,19 @@ def upload(project_id: str, file: UploadFile):
         temp.unlink(missing_ok=True)
 
 
+class RenameClip(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    previous_name: str
+
+
+@app.put('/api/projects/{project_id}/assets/{asset_id}/name')
+def rename_clip(project_id: str, asset_id: str, payload: RenameClip):
+    with transaction() as session:
+        project_lock(session, project_id)
+        AssetRepository.rename(session, project_id, asset_id, payload.name, payload.previous_name)
+        return detail(session, project_id)
+
+
 @app.get('/api/assets/{asset_id}/{variant}')
 def media(asset_id: str, variant: str):
     with Session() as session:

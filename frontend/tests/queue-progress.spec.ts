@@ -18,6 +18,7 @@ test('queue shows colored completed, current and remaining phases without new AP
  await page.route('**/api/**',async route=>{
   const path=new URL(route.request().url()).pathname;
   if(path==='/api/projects')return route.fulfill({json:[project]});
+  if(path==='/api/projects/queue-fixture/assets/sample-clip/name'){project.assets[0].name=route.request().postDataJSON().name;return route.fulfill({json:project});}
   if(path==='/api/projects/queue-fixture/timeline'){const body=route.request().postDataJSON();timelineAdds.push(body);project.timeline.items.push({id:'added-clip',...body.values});project.revision++;return route.fulfill({json:project});}
   if(path==='/api/projects/queue-fixture')return route.fulfill({json:project});
   if(path==='/api/providers')return route.fulfill({json:{paid_generation:{enabled:false},local_models:[]}});
@@ -51,10 +52,16 @@ test('queue shows colored completed, current and remaining phases without new AP
  await card.getByRole('button',{name:'Preview clip',exact:true}).click();
  await expect(page.getByLabel('Preview clip: Sample clip')).toHaveAttribute('src','/api/assets/sample-clip/original');
  expect(await page.evaluate(()=>(window as any).playCalls)).toBeGreaterThan(0);
- await page.getByLabel('Preview clip: Sample clip').evaluate(video=>{Object.defineProperty(video,'currentTime',{value:1,configurable:true});video.dispatchEvent(new Event('timeupdate'));});
+ await expect(page.locator('.preview-note').first()).toContainText('Not on timeline yet');
+ await page.getByLabel('Preview clip: Sample clip').evaluate(video=>{Object.defineProperty(video,'currentTime',{value:1,writable:true,configurable:true});video.dispatchEvent(new Event('timeupdate'));});
  await card.getByRole('button',{name:'Add to timeline',exact:true}).click();
  await expect(card.getByRole('button',{name:'On timeline ✓',exact:true})).toBeDisabled();
+ await card.getByRole('button',{name:'Preview clip',exact:true}).click();
+ await expect(page.locator('[data-timeline-item="added-clip"]')).toHaveClass(/selected/);
+ await expect(page.locator('[data-timeline-item="added-clip"]')).toHaveAttribute('aria-pressed','true');
+ await expect(page.locator('.preview-note').first()).toContainText('Placement highlighted on timeline');
  expect(timelineAdds).toHaveLength(1);expect(timelineAdds[0].values).toMatchObject({track:'video',asset_id:'sample-clip',start:0,duration:48});
+ await card.getByRole('button',{name:'Rename clip',exact:true}).click();await card.getByRole('textbox',{name:'Clip name',exact:true}).fill('River opening');await card.getByRole('button',{name:'Save name',exact:true}).click();await expect(page.locator('[data-timeline-item="added-clip"]')).toContainText('River opening');
  await page.getByRole('button',{name:'Return to timeline preview'}).click();
  await expect(page.getByLabel('Preview clip: Sample clip')).toHaveCount(0);
  job.state='failed';job.result={};await emit();await expect(bar.locator('.completed')).toHaveCount(0);

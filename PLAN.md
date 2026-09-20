@@ -390,3 +390,5 @@ Actual production timing and the final export correctly exclude those directions
   its own clock so previewing cannot move the insertion point. Already-placed
   clips show On timeline; manual additions preserve existing items and use the
   existing revision-checked timeline API. Automatic placement rules stay intact.
+
+- Add preview-driven timeline selection/scrolling and persistent clip renaming in queue, library and inspector. Native Edge fixtures passed highlight, rename and placement behavior. Bound native HTTP graceful shutdown so open SSE tabs cannot prevent shutdown; worker draining still completes before PostgreSQL stops.

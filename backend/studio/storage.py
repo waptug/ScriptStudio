@@ -63,6 +63,20 @@ class LocalStorage:
 class AssetRepository:
     def __init__(self, storage=None):
         self.storage = storage or LocalStorage()
+    @staticmethod
+    def rename(session, project_id, asset_id, name, previous_name):
+        from .timeline import Conflict
+        asset = session.get(Asset, asset_id)
+        if not asset or asset.project_id != project_id:
+            raise ValueError('Clip does not belong to this project')
+        if asset.name != previous_name:
+            raise Conflict('Clip name changed. Refresh and try again.')
+        name = name.strip()
+        if not name or len(name) > 200:
+            raise ValueError('Clip name must contain 1 to 200 characters')
+        asset.name = name
+        session.flush()
+
     def ingest(self, session, project_id, source, name, provenance, asset_id=None):
         info = probe(source)
         streams = info.get('streams', [])
