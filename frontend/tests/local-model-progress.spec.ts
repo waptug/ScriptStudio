@@ -36,6 +36,10 @@ test('installation shows stage progress, heartbeat, disconnection and persisted 
  model={...model,state:'installing',phase:'extracting',detail:'runtime/torch.whl',progress:.6};
  await expect(card.getByRole('progressbar')).toHaveAccessibleName('Kokoro-82M: Unpacking runtime',{timeout:8000});
  await expect(card).toContainText('60%');
+ model={...model,state:'verifying',phase:'verifying_downloads',progress:.9};
+ await expect(card.getByRole('progressbar')).toHaveAccessibleName('Kokoro-82M: Verifying downloaded files',{timeout:8000});
+ model={...model,phase:'verifying_runtime',progress:.1};
+ await expect(card.getByRole('progressbar')).toHaveAccessibleName('Kokoro-82M: Verifying installed runtime',{timeout:8000});
  model={...model,state:'verifying',phase:'probing',progress:null,total_bytes:null};
  await expect(card.getByRole('progressbar')).not.toHaveAttribute('value',{timeout:8000});
  model={...model,heartbeat:now-30,progress_updated:now-30};

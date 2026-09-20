@@ -164,7 +164,7 @@ def test_real_install_reports_unpack_verify_and_probe(tmp_path, monkeypatch):
     local_models.LocalModelService().install('kokoro', lock)
     assert local_models.state('kokoro')['state'] == 'ready'
     assert any(u.get('phase') == 'extracting' and u.get('progress') == 1 for u in updates)
-    assert any(u.get('phase') == 'verifying' and u.get('progress') == 1 for u in updates)
+    assert any(u.get('phase') == 'verifying_runtime' and u.get('progress') == 1 for u in updates)
     assert any(u.get('phase') == 'probing' and u.get('progress') is None for u in updates)
 
 

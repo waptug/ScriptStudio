@@ -3,7 +3,7 @@ export type LocalModel={id:string;name:string;kind:string;license:string;url:str
 const active=(m:LocalModel)=>['downloading','installing','verifying'].includes(m.state);
 const size=(n:number|null)=>n===null?'Not yet pinned':`${(n/1024**3).toFixed(2)} GiB`;
 const duration=(seconds:number)=>seconds<60?`${Math.floor(seconds)}s`:`${Math.floor(seconds/60)}m ${Math.floor(seconds%60)}s`;
-const phases:Record<string,string>={preparing:'Preparing installation',downloading:'Downloading files',checking_download:'Checking downloaded file',extracting:'Unpacking runtime',verifying:'Verifying files',inventory:'Scanning installed runtime',probing:'Testing model runtime'};
+const phases:Record<string,string>={preparing:'Preparing installation',downloading:'Downloading files',checking_download:'Checking downloaded file',extracting:'Unpacking runtime',verifying:'Verifying files',verifying_downloads:'Verifying downloaded files',verifying_runtime:'Verifying installed runtime',inventory:'Scanning installed runtime',probing:'Testing model runtime'};
 function InstallationProgress({model:m,now,disconnected}:{model:LocalModel;now:number;disconnected:boolean}){
  const known=typeof m.progress==='number'&&!!m.total_bytes;
  const age=(timestamp?:number)=>timestamp?Math.max(0,now-timestamp):null;

@@ -328,27 +328,29 @@ class LocalModelService:
             (base/f'runtime/{python_tag}._pth').write_text('\n'.join(paths)+'\n')
         update(name,state='verifying')
         checked=0
+        verification_phase='verifying_downloads'
         total_check=sum(a['size'] for a in lock['artifacts'])
         def checked_bytes(count):
             nonlocal checked
             checked+=count
-            report('verifying',current_file,checked,total_check,checked==total_check)
+            report(verification_phase,current_file,checked,total_check,checked==total_check)
         for artifact in lock['artifacts']:
             path=safe_path(base,artifact['path'])
             current_file=artifact['path']
-            report('verifying',current_file,checked,total_check,True)
+            report(verification_phase,current_file,checked,total_check,True)
             # Install/resume has already verified the pinned download checksums.
             if not path.is_file() or (verify_only and digest(path,canceled,checked_bytes)!=artifact['sha256']): raise ValueError('Missing or corrupt artifact; Resume to repair')
             if not verify_only: checked+=artifact['size']
             if canceled(): raise InterruptedError('Verification canceled')
         report('inventory','Scanning installed runtime',force=True)
         files=[p for p in (base/'runtime').rglob('*') if p.is_file() and '__pycache__' not in p.parts]
+        verification_phase='verifying_runtime'
         total_check=sum(p.stat().st_size for p in files)
         checked=0
         inventory={}
         for path in files:
             current_file=str(path.relative_to(base))
-            report('verifying',current_file,checked,total_check)
+            report(verification_phase,current_file,checked,total_check)
             inventory[current_file]=digest(path,canceled,checked_bytes)
         previous=state(name).get('inventory')
         if verify_only and (not previous or inventory!=previous): raise ValueError('Expanded runtime is missing or changed; Resume to repair')

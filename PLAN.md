@@ -344,3 +344,8 @@ Actual production timing and the final export correctly exclude those directions
   including a new slow-step heartbeat check; PostgreSQL concurrency check and
   frontend production build passed. Native Windows Edge progress/reconnect/cancel/
   persisted-readiness interaction test passed. Packaged desktop verification pending.
+
+- Native deployment preserved all 79 project documents and four Ready models.
+  Repeated Install calls reused all four without changing their saved state.
+  Split downloaded-file and installed-runtime verification labels after observing
+  the real verification pass so per-stage percentage resets are explicit.
