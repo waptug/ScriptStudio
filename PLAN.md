@@ -331,3 +331,16 @@ Actual production timing and the final export correctly exclude those directions
   `planner-release-verification.json`, `planner-park-estimate.png`, and
   `planner-live-storyboard.png`. Both desktop windows were visible, and the
   Minecraft companion was resumed and verified running after validation.
+
+### Local-model installation visibility and durable reuse
+
+- Add measured per-stage download, unpacking and verification progress, current
+  file, elapsed time, independent installer heartbeat and connection warnings.
+- Keep long unpacking operations cancellable between chunks; show indeterminate
+  progress for work with no meaningful percentage instead of a frozen 100% bar.
+- Reuse verified persisted installations on repeated Install requests and app
+  restarts; distinguish installed files from per-generation RAM/VRAM loading.
+- Validation: full backend suite passed (86 tests), followed by 13 focused tests
+  including a new slow-step heartbeat check; PostgreSQL concurrency check and
+  frontend production build passed. Native Windows Edge progress/reconnect/cancel/
+  persisted-readiness interaction test passed. Packaged desktop verification pending.

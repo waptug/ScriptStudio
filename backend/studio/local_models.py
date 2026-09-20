@@ -74,15 +74,16 @@ def file_reservation(path):
                 handle.seek(0); msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
 
 
-def digest(path, canceled=None):
+def digest(path, canceled=None, report=None):
     with path.open('rb') as stream:
-        if canceled is None: return hashlib.file_digest(stream,'sha256').hexdigest()
+        if canceled is None and report is None: return hashlib.file_digest(stream,'sha256').hexdigest()
         checksum=hashlib.sha256()
         while True:
-            if canceled(): raise InterruptedError('Verification canceled; downloaded files are preserved')
+            if canceled and canceled(): raise InterruptedError('Verification canceled; downloaded files are preserved')
             chunk=stream.read(8*1024*1024)
             if not chunk: return checksum.hexdigest()
             checksum.update(chunk)
+            if report: report(len(chunk))
 
 
 def safe_path(base, relative):
@@ -92,13 +93,18 @@ def safe_path(base, relative):
     return path
 
 
-def download(artifact, target, canceled, report, token=None):
+def download(artifact, target, canceled, report, token=None, checking=None):
     """Resume only the immutable artifact; verify bytes before promoting .part."""
     target.parent.mkdir(parents=True, exist_ok=True)
-    if target.exists() and target.stat().st_size==artifact['size'] and digest(target,canceled)==artifact['sha256']: return
+    def checksum(path):
+        if checking: checking(path.name)
+        return digest(path,canceled)
+    if target.exists() and target.stat().st_size==artifact['size'] and checksum(target)==artifact['sha256']:
+        report(artifact['size'])
+        return
     partial = target.with_name(target.name+'.part')
     offset = partial.stat().st_size if partial.exists() else 0
-    if offset == artifact['size'] and digest(partial,canceled) == artifact['sha256']:
+    if offset == artifact['size'] and checksum(partial) == artifact['sha256']:
         partial.replace(target)
         report(offset)
         return
@@ -119,7 +125,7 @@ def download(artifact, target, canceled, report, token=None):
                     offset += len(chunk)
                     if offset > artifact['size']: raise ValueError('Artifact exceeds pinned size')
                     output.write(chunk); report(offset)
-        if offset!=artifact['size'] or digest(partial,canceled)!=artifact['sha256']:
+        if offset!=artifact['size'] or checksum(partial)!=artifact['sha256']:
             partial.unlink(missing_ok=True)
             raise ValueError('Artifact checksum mismatch; corrupt download discarded')
         partial.replace(target)
@@ -128,7 +134,16 @@ def download(artifact, target, canceled, report, token=None):
         raise ValueError('Download interrupted; use Resume to retry the pinned artifact') from None
 
 
-def extract(archive, destination, canceled):
+def copy_chunks(source, target, canceled, report=None):
+    while True:
+        if canceled(): raise InterruptedError('Installation canceled')
+        chunk = source.read(1024*1024)
+        if not chunk: break
+        target.write(chunk)
+        if report: report(len(chunk))
+
+
+def extract(archive, destination, canceled, report=None):
     with zipfile.ZipFile(archive) as bundle:
         for info in bundle.infolist():
             if canceled(): raise InterruptedError('Installation canceled')
@@ -136,10 +151,10 @@ def extract(archive, destination, canceled):
             if info.external_attr >> 16 & 0o170000 == 0o120000: raise ValueError('Symlinks are not permitted in runtime archives')
             if info.is_dir(): output.mkdir(parents=True, exist_ok=True); continue
             output.parent.mkdir(parents=True, exist_ok=True)
-            with bundle.open(info) as source, output.open('wb') as target: shutil.copyfileobj(source,target)
+            with bundle.open(info) as source, output.open('wb') as target: copy_chunks(source,target,canceled,report)
 
 
-def extract_wheel(archive, runtime, canceled):
+def extract_wheel(archive, runtime, canceled, report=None):
     """Install a pinned wheel without resolving or downloading dependencies.
 
     Model runtimes are embedded Python distributions. Respect wheel .data
@@ -169,7 +184,7 @@ def extract_wheel(archive, runtime, canceled):
             if info.is_dir(): output.mkdir(parents=True, exist_ok=True); continue
             output.parent.mkdir(parents=True, exist_ok=True)
             with bundle.open(info) as source, output.open('wb') as target:
-                shutil.copyfileobj(source, target)
+                copy_chunks(source, target, canceled, report)
 
 
 class LocalModelService:
@@ -205,6 +220,10 @@ class LocalModelService:
             update(name,cancel=True); return public_state(state(name))
         if action not in ('install','resume','verify','uninstall'): raise ValueError('Unknown installation action')
         if action!='uninstall' and not lock: raise ValueError('Pinned native artifacts are not available for this model in this build')
+        if action=='install':
+            saved=state(name)
+            if saved.get('state')=='ready' and saved.get('revision')==lock['revision'] and (root()/name/'runtime/python.exe').is_file():
+                return public_state(saved)  # Reuse the durable verified installation.
         if action in ('install','resume'):
             if os.name!='nt': raise ValueError('Install local models from the native Windows application')
             if CATALOG[name].get('gated'):
@@ -217,8 +236,16 @@ class LocalModelService:
         try: model_guard.__enter__()
         except Exception: reservation.__exit__(None,None,None); raise
         update(name,state='verifying' if action=='verify' else 'installing',cancel=False,error=None,
+               phase='preparing',detail='Preparing '+action,progress=None,completed_bytes=0,total_bytes=None,
+               started_at=time.time(),heartbeat=time.time(),progress_updated=time.time(),
                license_accepted=accept_license or state(name).get('license_accepted',False))
         def work():
+            stopped = threading.Event()
+            def heartbeat():
+                while not stopped.wait(2):
+                    update(name,heartbeat=time.time())
+            pulse = threading.Thread(target=heartbeat,daemon=True,name='model-heartbeat-'+name)
+            pulse.start()
             try:
                 if action=='uninstall':
                     shutil.rmtree(root()/name,ignore_errors=True)
@@ -227,6 +254,8 @@ class LocalModelService:
             except InterruptedError as exc: update(name,state='interrupted',error=str(exc))
             except Exception as exc: update(name,state='failed',error=str(exc)[:500])
             finally:
+                stopped.set()
+                pulse.join()
                 model_guard.__exit__(None,None,None); reservation.__exit__(None,None,None)
         threading.Thread(target=work,daemon=True,name='model-install-'+name).start()
         return public_state(state(name))
@@ -242,6 +271,14 @@ class LocalModelService:
                 cancel_requested=bool(state(name).get('cancel'))
                 last_poll=now
             return cancel_requested
+        last_report=0.0
+        def report(phase,detail,completed=0,total=None,force=False):
+            nonlocal last_report
+            now=time.monotonic()
+            if force or now-last_report>=.5:
+                update(name,phase=phase,detail=detail,completed_bytes=completed,total_bytes=total,
+                       progress=min(1,completed/total) if total else None,progress_updated=time.time())
+                last_report=now
         if not verify_only:
             remaining=0
             for artifact in lock['artifacts']:
@@ -252,24 +289,33 @@ class LocalModelService:
             free=shutil.disk_usage(base).free
             if free<required: raise ValueError(f'Insufficient space: need {required/GIB:.1f} GiB; available {free/GIB:.1f} GiB (includes expanded runtime and 2 GiB allowance)')
             total=sum(a['size'] for a in lock['artifacts']); done=0
-            last_progress=0.0
             def progress(downloaded):
-                nonlocal last_progress
-                now=time.monotonic()
-                if now-last_progress>=.5 or downloaded==artifact['size']:
-                    update(name,state='downloading',progress=(done+downloaded)/total)
-                    last_progress=now
+                report('downloading',artifact['path'],done+downloaded,total,downloaded==artifact['size'])
             for artifact in lock['artifacts']:
                 if canceled(): raise InterruptedError('Installation canceled')
                 target=safe_path(base,artifact['path'])
-                download(artifact,target,canceled,progress,setting('HF_TOKEN') if artifact.get('gated') else None)
+                update(name,state='downloading')
+                report('downloading',artifact['path'],done,total,True)
+                download(artifact,target,canceled,progress,setting('HF_TOKEN') if artifact.get('gated') else None,
+                         checking=lambda filename: report('checking_download',filename,force=True))
                 done+=artifact['size']
             update(name,state='installing')
-            for artifact in lock['artifacts']:
+            archives=[a for a in lock['artifacts'] if a.get('wheel') or a.get('extract')]
+            expanded=0
+            for artifact in archives:
+                with zipfile.ZipFile(safe_path(base,artifact['path'])) as bundle:
+                    expanded+=sum(info.file_size for info in bundle.infolist() if not info.is_dir())
+            unpacked=0
+            def extracted(count):
+                nonlocal unpacked
+                unpacked+=count
+                report('extracting',artifact['path'],unpacked,expanded,unpacked==expanded)
+            for artifact in archives:
+                report('extracting',artifact['path'],unpacked,expanded,True)
                 if artifact.get('wheel'):
-                    extract_wheel(safe_path(base,artifact['path']),base/'runtime',canceled)
-                elif artifact.get('extract'):
-                    extract(safe_path(base,artifact['path']),safe_path(base,artifact['extract']),canceled)
+                    extract_wheel(safe_path(base,artifact['path']),base/'runtime',canceled,extracted)
+                else:
+                    extract(safe_path(base,artifact['path']),safe_path(base,artifact['extract']),canceled,extracted)
             # Embedded Python searches only this portable environment, never global packages.
             python_tag = lock.get('python_tag', 'python312')
             if python_tag not in ('python310', 'python311', 'python312'):
@@ -281,21 +327,37 @@ class LocalModelService:
             paths = [python_tag+'.zip', '.', 'Lib/site-packages', *extra_paths, 'import site']
             (base/f'runtime/{python_tag}._pth').write_text('\n'.join(paths)+'\n')
         update(name,state='verifying')
+        checked=0
+        total_check=sum(a['size'] for a in lock['artifacts'])
+        def checked_bytes(count):
+            nonlocal checked
+            checked+=count
+            report('verifying',current_file,checked,total_check,checked==total_check)
         for artifact in lock['artifacts']:
             path=safe_path(base,artifact['path'])
-            # Install/resume already hashes every cached or downloaded artifact
-            # in download(). Re-reading tens of GiB here adds no verification.
-            if not path.is_file() or (verify_only and digest(path,canceled)!=artifact['sha256']): raise ValueError('Missing or corrupt artifact; Resume to repair')
+            current_file=artifact['path']
+            report('verifying',current_file,checked,total_check,True)
+            # Install/resume has already verified the pinned download checksums.
+            if not path.is_file() or (verify_only and digest(path,canceled,checked_bytes)!=artifact['sha256']): raise ValueError('Missing or corrupt artifact; Resume to repair')
+            if not verify_only: checked+=artifact['size']
             if canceled(): raise InterruptedError('Verification canceled')
-            update(name,state='verifying')
-        # Retain hashes for all expanded runtime files; relocation uses relative paths only.
-        inventory={str(p.relative_to(base)):digest(p,canceled) for p in (base/'runtime').rglob('*') if p.is_file() and '__pycache__' not in p.parts}
+        report('inventory','Scanning installed runtime',force=True)
+        files=[p for p in (base/'runtime').rglob('*') if p.is_file() and '__pycache__' not in p.parts]
+        total_check=sum(p.stat().st_size for p in files)
+        checked=0
+        inventory={}
+        for path in files:
+            current_file=str(path.relative_to(base))
+            report('verifying',current_file,checked,total_check)
+            inventory[current_file]=digest(path,canceled,checked_bytes)
         previous=state(name).get('inventory')
         if verify_only and (not previous or inventory!=previous): raise ValueError('Expanded runtime is missing or changed; Resume to repair')
         if not (base/'runtime/python.exe').is_file(): raise ValueError('Native Python runtime missing')
         from .local_inference import probe
+        report('probing','Testing model runtime and device support',force=True)
         probe(name)
-        update(name,state='ready',progress=1,revision=lock['revision'],inventory=inventory,error=None)
+        if canceled(): raise InterruptedError('Verification canceled')
+        update(name,state='ready',phase='complete',detail='Installation verified',progress=1,revision=lock['revision'],inventory=inventory,error=None)
 
 
 def hardware():

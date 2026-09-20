@@ -94,3 +94,106 @@ def test_wheel_cancellation_leaves_no_new_files(tmp_path):
     with pytest.raises(InterruptedError):
         extract_wheel(wheel, tmp_path / 'runtime', lambda: True)
     assert not (tmp_path / 'runtime').exists()
+
+
+def test_cached_artifact_reports_completion_without_network(tmp_path, monkeypatch):
+    from studio import local_models
+    payload = b'already installed weights'
+    target = tmp_path / 'model.bin'
+    target.write_bytes(payload)
+    artifact = {'size': len(payload), 'sha256': hashlib.sha256(payload).hexdigest()}
+    monkeypatch.setattr(local_models.httpx, 'stream', lambda *a, **k: pytest.fail('Unexpected download'))
+    reports = []
+    checks = []
+    local_models.download(artifact, target, lambda: False, reports.append, checking=checks.append)
+    assert reports == [len(payload)]
+    assert checks == ['model.bin']
+
+
+def test_large_archive_reports_bytes_and_can_cancel_mid_file(tmp_path):
+    from studio import local_models
+    archive = tmp_path / 'runtime.zip'
+    payload = b'x' * (3 * 1024 * 1024)
+    with zipfile.ZipFile(archive, 'w') as bundle:
+        bundle.writestr('large.dll', payload)
+    reports = []
+    with pytest.raises(InterruptedError):
+        local_models.extract(archive, tmp_path / 'canceled', lambda: bool(reports), reports.append)
+    assert reports == [1024 * 1024]
+    assert (tmp_path / 'canceled/large.dll').stat().st_size == 1024 * 1024
+    reports.clear()
+    local_models.extract(archive, tmp_path / 'complete', lambda: False, reports.append)
+    assert sum(reports) == len(payload)
+    assert (tmp_path / 'complete/large.dll').read_bytes() == payload
+
+
+def test_install_reuses_verified_model_across_service_restarts(tmp_path, monkeypatch):
+    from studio import local_models
+    runtime = tmp_path / 'kokoro/runtime'
+    runtime.mkdir(parents=True)
+    (runtime / 'python.exe').write_bytes(b'installed runtime')
+    monkeypatch.setattr(local_models, 'root', lambda: tmp_path)
+    monkeypatch.setattr(local_models, 'manifest', lambda name: {'revision': 'pinned', 'artifacts': []})
+    monkeypatch.setattr(local_models, 'hardware', lambda: {'gpus': []})
+    local_models.update('kokoro', state='ready', revision='pinned', progress=1, inventory={'runtime/python.exe': 'hash'})
+    monkeypatch.setattr(local_models.LocalModelService, 'install', lambda *a, **k: pytest.fail('Must reuse installation'))
+    for _ in range(2):
+        service = local_models.LocalModelService()
+        assert service.catalog()['models'][0]['ready']
+        assert service.action('kokoro', 'install')['state'] == 'ready'
+    assert (runtime / 'python.exe').read_bytes() == b'installed runtime'
+
+
+def test_real_install_reports_unpack_verify_and_probe(tmp_path, monkeypatch):
+    from studio import local_models, local_inference
+    archive = tmp_path / 'kokoro/runtime.zip'
+    archive.parent.mkdir()
+    with zipfile.ZipFile(archive, 'w') as bundle:
+        bundle.writestr('python.exe', b'fake runtime for installer test')
+    lock = {'revision': 'pinned', 'expanded_bytes': 100,
+            'artifacts': [{'path': 'runtime.zip', 'extract': 'runtime', 'size': archive.stat().st_size,
+                           'sha256': local_models.digest(archive)}]}
+    monkeypatch.setattr(local_models, 'root', lambda: tmp_path)
+    monkeypatch.setattr(local_inference, 'probe', lambda name: None)
+    updates = []
+    original = local_models.update
+    def record(name, **values):
+        updates.append(values)
+        original(name, **values)
+    monkeypatch.setattr(local_models, 'update', record)
+    local_models.LocalModelService().install('kokoro', lock)
+    assert local_models.state('kokoro')['state'] == 'ready'
+    assert any(u.get('phase') == 'extracting' and u.get('progress') == 1 for u in updates)
+    assert any(u.get('phase') == 'verifying' and u.get('progress') == 1 for u in updates)
+    assert any(u.get('phase') == 'probing' and u.get('progress') is None for u in updates)
+
+
+def test_installer_heartbeat_continues_during_slow_step(tmp_path, monkeypatch):
+    import threading
+    import time
+    from studio import local_models
+    monkeypatch.setattr(local_models, 'root', lambda: tmp_path)
+    monkeypatch.setattr(local_models, 'manifest', lambda name: {'revision': 'pinned', 'artifacts': []})
+    release = threading.Event()
+    entered = threading.Event()
+    def slow_install(self, name, lock, verify_only=False):
+        entered.set()
+        assert release.wait(10)
+        local_models.update(name, state='ready')
+    monkeypatch.setattr(local_models.LocalModelService, 'install', slow_install)
+    service = local_models.LocalModelService()
+    service.action('kokoro', 'verify')
+    assert entered.wait(2)
+    first = local_models.state('kokoro')['heartbeat']
+    try:
+        deadline = time.monotonic() + 5
+        while local_models.state('kokoro')['heartbeat'] == first and time.monotonic() < deadline:
+            time.sleep(.05)
+        saved = local_models.state('kokoro')
+        assert saved['heartbeat'] > first
+        assert saved['progress'] is None
+        assert saved['state'] == 'verifying'
+    finally:
+        release.set()
+        for thread in threading.enumerate():
+            if thread.name == 'model-install-kokoro': thread.join(5)

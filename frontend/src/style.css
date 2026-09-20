@@ -13,3 +13,9 @@
 .writer-activity progress{width:100%;height:6px;accent-color:var(--accent)}
 @keyframes writer-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.writer-spinner{animation:none}.writer-activity progress{display:none}}
+
+.model-install-progress{margin:1rem 0;padding:1rem;border:1px solid var(--border,#64748b);border-radius:.6rem}
+.model-progress-heading{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.model-install-progress progress{display:block;width:100%;height:1.25rem;margin:.75rem 0;accent-color:var(--accent,#38bdf8)}
+.model-install-progress p{margin:.4rem 0}
+.model-progress-detail{overflow-wrap:anywhere;font-size:.9rem}

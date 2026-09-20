@@ -89,3 +89,23 @@ planning does not rewrite dialogue. Some installed Ollama models reject constrai
 JSON generation. For that specific error, ScriptStudio requests ordinary JSON and
 validates it identically, allowing one correction attempt. If validation still
 fails, the saved script and storyboard remain intact and the error is shown.
+
+### Installation progress and reuse
+
+Admin shows a full-width progress bar for each installation stage, the current
+file, measured bytes, elapsed time, and an installer heartbeat. Downloads,
+unpacking, and file verification report measured progress; preparing, checksum
+checks, and runtime probes use an indeterminate bar. A percentage applies to the
+current stage, not the entire installation. Missing heartbeats or a disconnected
+API show a warning instead of claiming the installer is still responding.
+Cancel remains available during an active operation, including large-file
+unpacking. Resume keeps partial downloads and checks pinned files before reuse.
+
+Verified models stay installed in `ScriptStudioNative/local-models`; their Ready
+status persists in the workspace database across app restarts and package updates
+when the pinned model revision is unchanged. Install is idempotent for a Ready
+model. Use **Repair** only when you need to repair that installation, or **Verify**
+to check it explicitly. Normal launches and generation do not reinstall models.
+Weights still load from local disk into RAM/VRAM when a generation process starts.
+All four models are not kept resident together: GPU jobs share the workstation
+with Ollama, and runtime memory cannot survive an application/system shutdown.
