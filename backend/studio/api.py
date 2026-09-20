@@ -169,6 +169,14 @@ def projects():
         return [{'id':p.id,'name':p.name,'created':p.created,'revision':p.revision,'settings':p.settings} for p in session.scalars(select(Project).order_by(Project.created.desc()))]
 
 
+@app.post('/api/demos/local-scriptstudio')
+def local_scriptstudio_demo():
+    from .local_demo import create
+    with transaction() as session:
+        project=create(session)
+        return detail(session,project.id)
+
+
 @app.post('/api/projects')
 def create(payload: CreateProject):
     with transaction() as session:

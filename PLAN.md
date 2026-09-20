@@ -407,3 +407,14 @@ Actual production timing and the final export correctly exclude those directions
   phase metadata. Focused rename/queue tests: 14 passed.
 - Local evidence: workspace-local-models/queue-progress-release-verification.json,
   queue-native-verification.json and queue-ui-live-verification.json (untracked).
+
+### Built-in 60-second local-model ScriptStudio demo
+
+- Add a separate dashboard action using Kokoro, twelve Wan shots, and ACE-Step
+  music; never substitute mocks or paid providers. Preserve the existing mock
+  demo under an explicit label.
+- Prepare an exact 60-second timeline with natural narration, captions, durable
+  placeholders and automatic final export. Reconciliation is idempotent across
+  restarts and respects failed jobs and manual timeline changes.
+- Frontend build and 12 focused local-demo/job tests passed. Native deployment
+  and real generation verification follow without interrupting existing jobs.

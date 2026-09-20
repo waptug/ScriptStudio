@@ -102,8 +102,13 @@ class GenerationCoordinator:
 
     def assemble(self, session, project):
         jobs = list(session.scalars(select(Job).where(Job.project_id==project.id,Job.kind=='narration').order_by(Job.created)))
-        if not jobs or any(j.state!='ready' for j in jobs) or jobs[0].result.get('assembled'):
+        if not jobs or any(j.state!='ready' for j in jobs):
             return
+        if jobs[0].inputs.get('demo_template') == 'scriptstudio-local-60-v1':
+            from .local_demo import reconcile
+            reconcile(session,project,jobs[0],self)
+            return
+        if jobs[0].result.get('assembled'): return
         settings = Settings.model_validate(project.settings)
         board = Storyboard.model_validate(project.storyboard)
         items = deepcopy(project.timeline['items'])
