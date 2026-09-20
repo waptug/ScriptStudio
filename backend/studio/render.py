@@ -42,7 +42,7 @@ class RenderService:
         if not timeline.items:
             raise ValueError('Timeline is empty')
 
-    def render(self, session, project_id, job_id, inputs, progress=lambda value:None):
+    def render(self, session, project_id, job_id, inputs, progress=lambda value:None, activity=None):
         timeline = Timeline.model_validate(inputs['timeline'])
         settings = Settings.model_validate(inputs['settings'])
         self.validate(session, project_id, timeline, inputs.get('draft',False))
@@ -60,7 +60,9 @@ class RenderService:
         for ext in ('srt','vtt'):
             (folder/f'captions.{ext}').write_text(self.subtitles(timeline,settings,ext=='vtt'))
         output = folder/'output.mp4'
-        visual_path = OpenShotVisualService().render(session,self.storage,timeline,settings,folder,width,height,total_frames,{**inputs,'project_id':project_id},progress)
+        if activity: activity('generate', None, 'Rendering timeline frames')
+        visual_progress = (lambda value: activity('generate', min(1, value/.6), 'Rendering timeline frames')) if activity else progress
+        visual_path = OpenShotVisualService().render(session,self.storage,timeline,settings,folder,width,height,total_frames,{**inputs,'project_id':project_id},visual_progress)
         args = ['ffmpeg','-v','warning','-y','-filter_complex_threads','1','-i',str(visual_path),
                 '-f','lavfi','-i',f'anullsrc=r=48000:cl=stereo:d={total}']
         graph = ['[0:v]null[video]']
@@ -102,18 +104,22 @@ class RenderService:
                  '-crf','27' if inputs.get('preview') else '20','-pix_fmt','yuv420p','-c:a','aac','-ar','48000',
                  '-movflags','+faststart','-progress','pipe:1',str(output)]
         log_path = folder/'ffmpeg.log'
+        if activity: activity('transfer', None, 'Encoding video and mixing audio')
         with open(log_path, 'w') as log:
             process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=log, text=True)
             try:
                 for line in process.stdout:
                     if line.startswith('out_time_us='):
-                        progress(.6+min(.39, int(line.split('=')[1])/1000000/total*.4))
+                        fraction=min(1, int(line.split('=')[1])/1000000/total)
+                        if activity: activity('transfer', fraction, 'Encoding video and mixing audio')
+                        else: progress(.6+min(.39, fraction*.4))
                 if process.wait(timeout=30):
                     raise ValueError('Render failed: '+log_path.read_text()[-2500:])
             finally:
                 if process.poll() is None:
                     process.kill()
                     process.wait()
+        if activity: activity('transfer', None, 'Finalizing output files')
         bundle = None
         if not inputs.get('preview'):
             from .openshot_bundle import OpenShotBundleService

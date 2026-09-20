@@ -26,9 +26,9 @@ def main():
         print(json.dumps({'cuda':torch.version.cuda,'ready':True}));return
     request=json.loads(Path(sys.argv[2]).read_text(encoding='utf-8'))
     base=Path(request['model_root']); model=base/'model'
-    def report(state,progress=0,steps=None):
+    def report(state,progress=0,steps=None,phase=None,detail=None):
         file=Path(request['status']);temp=file.with_suffix('.new')
-        temp.write_text(json.dumps(dict(state=state,progress=progress,steps=steps)));temp.replace(file)
+        temp.write_text(json.dumps(dict(state=state,progress=progress,steps=steps,phase=phase,detail=detail)));temp.replace(file)
     torch.manual_seed(request['seed'])
     report('loading')
     if name=='kokoro':
@@ -41,6 +41,7 @@ def main():
         report('generating')
         audio=[result.audio.numpy() for result in pipeline(request['text'],voice=str(model/'voices'/(voice+'.pt')),speed=1)]
         if not audio: raise ValueError('Narration produced no audio')
+        report('generating',phase='transfer',detail='Saving audio file')
         sf.write(request['output'],np.concatenate(audio),24000)
     elif name=='wan':
         from diffusers import WanPipeline,AutoencoderKLWan
@@ -54,6 +55,7 @@ def main():
         report('generating')
         frames=pipeline(prompt=request['prompt'],negative_prompt='blurred, low quality, text, watermark',height=480,width=832,num_frames=81,
                         num_inference_steps=30,guidance_scale=5,generator=torch.Generator('cpu').manual_seed(request['seed']),callback_on_step_end=step).frames[0]
+        report('generating',phase='transfer',detail='Encoding video file')
         export_to_video(frames,request['output'],fps=16)
     elif name=='ace_step':
         import soundfile as sf
@@ -87,6 +89,7 @@ def main():
         audio,rate=sf.read(result.audios[0]['path'],dtype='float32',always_2d=True)
         # ACE-Step's minimum is ten seconds. Short projects use a trimmed excerpt,
         # preserving pitch and tempo rather than stretching the generated music.
+        report('generating',phase='transfer',detail='Saving audio file')
         sf.write(request['output'],audio[:round(request['duration']*rate)],rate)
     elif name=='stable_audio':
         import soundfile as sf
@@ -106,6 +109,7 @@ def main():
         audio=generate_diffusion_cond(network,steps=8,cfg_scale=1.0,conditioning=[{'prompt':request['prompt'],'seconds_total':request['duration']}],sample_size=config['sample_size'],sampler_type='pingpong',device='cuda',seed=request['seed'])
         audio=audio[0,:,:int(request['duration']*config['sample_rate'])].float().cpu()
         audio=audio/audio.abs().max().clamp(min=1e-8)
+        report('generating',phase='transfer',detail='Saving audio file')
         sf.write(request['output'],audio.T.numpy(),config['sample_rate'])
     report('validating',1)
     if name!='kokoro':

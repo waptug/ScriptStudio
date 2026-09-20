@@ -7,6 +7,7 @@ import secrets
 import subprocess
 import time
 from sqlalchemy import text
+from .queue_progress import apply_changes, loading_detail
 from .db import engine, Session, Job, project_lock
 from .local_models import CATALOG, LocalModelService, root, file_reservation, hardware
 
@@ -68,13 +69,13 @@ def unload_ollama():
         raise GPUWaiting('Waiting for Ollama to release its idle models') from None
 
 
-def report(job_id, **changes):
+def report(job_id, queue_phase=None, queue_fraction=None, queue_detail=None, **changes):
     with Session.begin() as session:
         job=session.get(Job,job_id)
         project_lock(session,job.project_id)
         session.refresh(job)
         if job.state=='canceled': raise InterruptedError('Local inference canceled')
-        for key,value in changes.items(): setattr(job,key,value)
+        apply_changes(job,changes,phase=queue_phase,fraction=queue_fraction,detail=queue_detail,contact=True)
         job.updated=time.time();job.lease_until=time.time()+60
 
 
@@ -106,7 +107,16 @@ def owned_process(name,job_id,request):
                 status={}
                 try: status=json.loads(status_file.read_text())
                 except (OSError,ValueError): pass
-                report(job_id,state=status.get('state','loading'),progress=min(.99,float(status.get('progress',0))),result={'elapsed_seconds':round(time.monotonic()-started),'steps':status.get('steps')})
+                phase=status.get('phase')
+                loading=status.get('state','loading')=='loading'
+                detail=loading_detail(folder/'inference.log') if loading else status.get('detail')
+                steps=status.get('steps')
+                measured=status.get('phase_progress')
+                if measured is None and steps and steps.get('total',0)>0:
+                    measured=steps['current']/steps['total']
+                report(job_id,state=status.get('state','loading'),progress=min(.99,float(status.get('progress',0))),
+                       queue_phase=phase,queue_fraction=measured,queue_detail=detail,
+                       result={'elapsed_seconds':round(time.monotonic()-started),'steps':steps})
                 time.sleep(1)
             report(job_id,state='validating')
             if process.returncode or not output.is_file():
@@ -116,6 +126,8 @@ def owned_process(name,job_id,request):
                 process.terminate()
                 try:process.wait(timeout=10)
                 except subprocess.TimeoutExpired:process.kill();process.wait()
-    return {'provider_id':job_id,'local_path':str(output),'model_revision':request['model_revision'],
+    with Session() as session:
+        progress=session.get(Job,job_id).result.get('queue_progress')
+    return {'queue_progress':progress,'provider_id':job_id,'local_path':str(output),'model_revision':request['model_revision'],
             'seed':request['seed'],'elapsed_seconds':round(time.monotonic()-started,2),
             'caption_method':'estimated from measured speech duration' if name=='kokoro' else None}

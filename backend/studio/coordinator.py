@@ -15,6 +15,7 @@ from .storage import AssetRepository, LocalStorage
 from .timeline import TimelineService
 from .budget import BudgetService
 from .render import RenderService
+from .queue_progress import apply_changes, record
 
 ACTIVE = ('waiting_for_gpu','loading','submitting','submitted','generating','downloading','validating')
 TERMINAL = ('ready','failed','canceled','submission_outcome_unknown')
@@ -164,6 +165,7 @@ class GenerationCoordinator:
         job.progress = 1
         job.lease_until = 0
         job.updated = time.time()
+        record(job, phase='ready')
         if job.kind in ('video','music','sfx'):
             TimelineService().fill(session,project,job.inputs.get('placeholder_id'),asset)
 
@@ -179,6 +181,7 @@ class GenerationCoordinator:
             if job.state=='queued' and active>=project.settings['max_concurrency']: return False
             if processing_mode(job.provider)=='local' and job.kind!='render' and job.state in ('waiting_for_gpu','loading','generating'):
                 job.state='queued'
+                record(job, reset=True)
             if job.state=='submitting':
                 if processing_mode(job.provider)!='paid' or job.kind=='render':
                     job.state='queued'
@@ -191,11 +194,11 @@ class GenerationCoordinator:
             job.lease_until = now+600
             return True
 
-    def set(self, job_id, **changes):
+    def set(self, job_id, queue_phase=None, queue_fraction=None, queue_detail=None, **changes):
         with transaction() as session:
             job = session.get(Job,job_id)
             if job.state=='canceled': return False
-            for key,value in changes.items(): setattr(job,key,value)
+            apply_changes(job, changes, phase=queue_phase, fraction=queue_fraction, detail=queue_detail, contact=True)
             job.updated = time.time()
             return True
 
@@ -208,10 +211,15 @@ class GenerationCoordinator:
                 project_id, provider_id, result = job.project_id,job.provider_id,deepcopy(job.result)
                 attempts = job.attempts
             if kind=='render':
-                self.set(job_id,state='generating')
-                def report(value): self.set(job_id,progress=value,lease_until=time.time()+600)
+                self.set(job_id,state='generating',queue_phase='prepare',queue_detail='Preparing timeline')
+                def report(value): self.set(job_id,progress=value,lease_until=time.time()+600,queue_fraction=value,queue_phase='generate')
+                def activity(phase, fraction=None, detail=''):
+                    values={'lease_until':time.time()+600}
+                    if fraction is not None:
+                        values['progress']=fraction*.6 if phase=='generate' else .6+min(.39,fraction*.4)
+                    self.set(job_id,queue_phase=phase,queue_fraction=fraction,queue_detail=detail,**values)
                 with Session() as session:
-                    output, metadata = RenderService().render(session,project_id,job_id,inputs,report)
+                    output, metadata = RenderService().render(session,project_id,job_id,inputs,report,activity=activity)
                 result = {'local_path':str(output),**metadata}
                 self.set(job_id,state='validating',result=result)
             else:
@@ -222,6 +230,8 @@ class GenerationCoordinator:
                     if processing_mode(provider_name) == 'paid':
                         require_paid({'narration':'speech', 'sfx':'audio'}.get(kind, kind))
                     self.set(job_id,state='submitting',attempts=attempts+1)
+                    if not provider.capabilities.asynchronous and processing_mode(provider_name)=='paid':
+                        self.set(job_id,queue_phase='generate',queue_detail='Waiting for generated audio')
                     result = provider.submit(job_id,inputs)
                     provider_id = result['provider_id']
                     self.set(job_id,state='submitted',provider_id=provider_id,result=result)
@@ -313,6 +323,7 @@ class GenerationCoordinator:
             if job.retries>=5:
                 job.result = {**job.result,'retry_state':job.state}
                 job.state='failed'
+            if job.state=='queued': record(job, reset=True, detail='Waiting to retry')
             job.next_run = time.time()+min(60,2**job.retries)
             job.updated = time.time()
 
@@ -321,6 +332,7 @@ class GenerationCoordinator:
         if processing_mode(job.provider)=='paid' and job.attempts and not job.provider_id and not job.result.get('safe_to_retry_submission'):
             raise ValueError('No provider ID is known. Reconcile submission rather than risk a second paid request.')
         job.state = job.result.get('retry_state','submitted' if job.provider_id else 'queued')
+        if job.state=='queued': record(job, reset=True, detail='Waiting to retry')
         job.retries=0
         job.next_run=0
         job.lease_until=0

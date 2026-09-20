@@ -47,7 +47,11 @@ def test_preview_export_duration_audio_and_immutable_snapshot(project_id):
     paths=[]
     with Session() as s:
         for preview in (True,False):
-            path,meta=RenderService().render(s,project_id,uid(),{**snapshot,'preview':preview})
+            phases=[]
+            path,meta=RenderService().render(s,project_id,uid(),{**snapshot,'preview':preview},activity=lambda phase,fraction=None,detail='': phases.append((phase,fraction)))
+            assert phases[0][0]=='generate'
+            assert phases[-1][0]=='transfer'
+            assert any(phase=='transfer' and fraction is not None and 0<=fraction<=1 for phase,fraction in phases)
             info=probe(path)
             assert abs(float(info['format']['duration'])-3)<.06
             video_stream=next(st for st in info['streams'] if st['codec_type']=='video')

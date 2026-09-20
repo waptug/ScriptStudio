@@ -373,3 +373,20 @@ Actual production timing and the final export correctly exclude those directions
 - Deploy web assets only while Wan runs; retain old assets and record backend/Wan
   process identities. Backend progress instrumentation is prepared separately and
   must not be deployed until all queued and active jobs finish.
+
+- UI-only deployment succeeded with backend PID 39924 unchanged. Wan completed
+  naturally (all 30 generation steps) and its existing job remained Ready. Native
+  Edge confirmed six completed phases and no browser errors; a separate tab was
+  opened without reloading the user's existing editor.
+- Add durable optional queue-progress metadata, sanitized bounded Wan loading
+  counters, separate activity/contact timestamps, local file-saving phases and
+  render/encode callbacks. Full backend suite passed 98 tests, followed by 29
+  focused queue/job/render tests after retry/GPU-wait refinements. PostgreSQL
+  concurrency and native Edge legacy/enhanced/multiple-provider fixtures passed.
+- Complete native package deployment remains gated on an immediately rechecked
+  empty active/queued set; never replace a running backend while jobs exist.
+
+- Add completed-job Preview clip and Add to timeline controls. Clip playback uses
+  its own clock so previewing cannot move the insertion point. Already-placed
+  clips show On timeline; manual additions preserve existing items and use the
+  existing revision-checked timeline API. Automatic placement rules stay intact.
