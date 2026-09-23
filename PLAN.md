@@ -429,3 +429,21 @@ Actual production timing and the final export correctly exclude those directions
   in the durable queue and were deliberately left running without interruption.
 - Evidence: workspace-local-models/local-demo-started.json,
   local-demo-generation-verification.json, local-demo-release-verification.json.
+
+### Bundled user documentation
+
+- Add dashboard/editor manual navigation and About documentation downloads.
+- Ship browser manual, browser/downloadable README, and a genuine Word DOCX file.
+- Keep Markdown sources and a repeatable generator with pinned documentation dependencies.
+- Resolve README source links to the repository; bundle local manual links.
+- Validation: frontend TypeScript/Vite build and diff whitespace checks passed.
+  Native Edge passed both preview and installed-app checks for dashboard/editor/
+  About navigation, manual popup, all 15 sections, contents anchors, DOCX download,
+  README links, mobile document layout, and absence of page errors. All 117 Word
+  paragraphs match the browser guide; the downloadable README matches its source.
+- Deployed web assets and manuals to the existing native package without restarting
+  backend PID 35968; health stayed OK. Existing assets and a UI backup were retained.
+  The standalone EXE was not rebuilt. Future packages include the committed public files.
+- Local verification/deployment tooling and backup evidence:
+  D:/ScriptStudio/documentation-work/{verify-docs.cjs,deploy-manuals.ps1} and
+  ScriptStudioNative/workspace-local-models/manuals-ui-deployment.json.

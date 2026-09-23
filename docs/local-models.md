@@ -7,7 +7,7 @@ continues interrupted downloads and Verify checks the installed files.
 
 On this workstation, double-click **ScriptStudio Local Models** on the desktop.
 It launches `D:\ScriptStudio\ScriptStudio-Local-Models.exe` and opens the editor
-at `http://127.0.0.1:50757`. Keep the launcher open while working; use **Stop
+at the address selected by the launcher. Use **Open studio** for the current URL. Keep the launcher open while working; use **Stop
 studio** or close it to finish active jobs and stop safely.
 
 Projects are in `ScriptStudioNative\workspace-local-models`; installed media

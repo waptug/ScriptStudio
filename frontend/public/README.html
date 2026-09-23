@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ScriptStudio README</title><style>body{font-family:system-ui,sans-serif;color:#203040;line-height:1.6;max-width:920px;margin:auto;padding:32px 24px;background:white}h1,h2,h3{color:#164e63;line-height:1.25}h2{padding-top:20px;border-bottom:1px solid #c3d0d8}a{color:#155cb0}pre,code{background:#edf2f5;overflow-wrap:anywhere}pre{padding:16px;white-space:pre-wrap}table{border-collapse:collapse;display:block;overflow:auto}th,td{border:1px solid #c3d0d8;padding:10px;text-align:left}nav,.toc{background:#f3f7fa;padding:16px;margin-bottom:24px}nav{display:flex;gap:18px;flex-wrap:wrap}img{max-width:100%}a:focus-visible{outline:3px solid #155cb0;outline-offset:3px}@media print{nav,.toc{display:none}body{padding:0;max-width:none}h2,h3{break-after:avoid}}</style></head><body><nav aria-label="Documentation"><a href="/">ScriptStudio</a><a href="/user-manual.html">User manual</a><a href="/ScriptStudio-User-Manual.docx" download>Download Word manual (.docx)</a><a href="/README.html">README</a><a href="/README.md" download>Download README.md</a></nav><aside aria-label="Contents"><div class="toc">
+<ul>
+<li><a href="#scriptstudio">ScriptStudio</a><ul>
+<li><a href="#user-documentation-and-quick-start">User documentation and quick start</a><ul>
+<li><a href="#two-different-demos">Two different demos</a></li>
+<li><a href="#queue-progress-preview-and-clip-names">Queue progress, preview and clip names</a></li>
+<li><a href="#installation-loading-and-storage">Installation, loading and storage</a></li>
+<li><a href="#common-problems">Common problems</a></li>
+</ul>
+</li>
+<li><a href="#docker-development-server-startup">Docker development / server startup</a></li>
+<li><a href="#standalone-native-windows-exe">Standalone native Windows EXE</a></li>
+<li><a href="#earlier-docker-based-windows-exe-package">Earlier Docker-based Windows EXE package</a></li>
+<li><a href="#create-a-video">Create a video</a></li>
+<li><a href="#openshot-reuse">OpenShot reuse</a></li>
+<li><a href="#reproduce-the-demo-and-tests">Reproduce the demo and tests</a></li>
+<li><a href="#development">Development</a></li>
+<li><a href="#documentation">Documentation</a></li>
+<li><a href="#license">License</a><ul>
+<li><a href="#automatic-ollama-setup">Automatic Ollama setup</a></li>
+<li><a href="#portable-windows-storage-and-free-space">Portable Windows storage and free space</a></li>
+<li><a href="#regenerate-bundled-documentation">Regenerate bundled documentation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</aside><main><h1 id="scriptstudio">ScriptStudio</h1>
+<p>A local, single-user script-to-video studio with a React editor, durable Python
+production services, and <strong>OpenShot's actual video compositor</strong>. Mock mode produces
+playable narrated videos without any paid credentials.</p>
+<h2 id="user-documentation-and-quick-start">User documentation and quick start</h2>
+<ul>
+<li><a href="/user-manual.html">Detailed user manual</a>: step-by-step instructions for everyday use.</li>
+<li><a href="/ScriptStudio-User-Manual.docx">Download the Word .docx manual</a>.</li>
+<li><a href="/user-manual.html">Read the manual in a browser</a>.</li>
+<li><a href="https://github.com/waptug/ScriptStudio/blob/master/docs/local-demo.md">Local AI demo</a> and <a href="https://github.com/waptug/ScriptStudio/blob/master/docs/queue-progress.md">queue/clip controls</a>.</li>
+<li>Source and issue history: https://github.com/waptug/ScriptStudio</li>
+</ul>
+<p>For the installed native Windows workspace, open the <strong>ScriptStudio Local Models</strong>
+desktop shortcut (or <code>ScriptStudio-Local-Models.exe</code>). Keep the launcher open while
+working. It starts the local services and opens the correct browser address; use
+<strong>Open studio</strong> rather than a previously saved port. The native package needs no
+separately installed Docker, Python or Node. Ollama is optional for script writing
+and visual planning; media generation uses its own installed runtimes.</p>
+<p>The <strong>User manual</strong> navigation link opens the guide and offers a Word download.
+<strong>About this project</strong> links to this README, a browser-readable version, the manual,
+and licensing information. Local copies of <code>README.md</code> and
+<code>ScriptStudio-User-Manual.docx</code> are bundled with the application and available
+through those links.</p>
+<h3 id="two-different-demos">Two different demos</h3>
+<table>
+<thead>
+<tr>
+<th>Dashboard action</th>
+<th>Media sources</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Try the 60-second mock demo</td>
+<td>eSpeak, labeled synthetic footage, synthesized music</td>
+<td>Opens sample content for reviewing, planning and producing.</td>
+</tr>
+<tr>
+<td>Create 60-second ScriptStudio demo · local AI</td>
+<td>Kokoro narration, twelve Wan shots, ACE-Step music</td>
+<td>Starts a separate introduction project, builds a 60-second timeline and queues final export when all generation is ready.</td>
+</tr>
+</tbody>
+</table>
+<p>The local AI demo requires the three models to be Ready in <strong>Admin → Local models</strong>.
+It never falls back to mocks and does not enable paid providers. Its prompt is
+“Introducing ScriptStudio and what it does.” Twelve five-second placements make
+exactly 1,440 frames at 24 fps. Natural narration is not accelerated or cut; if it
+exceeds a minute, assembly stops with an explanation. Manual edits are honored and
+can change the preset duration. Allow several hours for Wan generation on a
+consumer GPU; sixty seconds describes the finished video, not processing time.</p>
+<h3 id="queue-progress-preview-and-clip-names">Queue progress, preview and clip names</h3>
+<p>Queue segments show the order of applicable phases: gray <strong>Queued</strong>, blue
+<strong>Prepare/Load model</strong>, purple <strong>Generate/Render</strong>, cyan <strong>Save/Download/Encode</strong>,
+amber <strong>Check</strong>, green <strong>Ready</strong>. Completed phases retain checkmarks; current work
+is outlined; remaining phases are dimmed. Segment widths are not an ETA. Measured
+steps, component counts, elapsed time and contact/activity information have distinct
+meanings; an elapsed timer alone cannot establish that a model is progressing.</p>
+<p>Ready jobs offer <strong>Preview clip</strong>, which plays the original media and highlights
+its existing timeline placement without moving the insertion point. <strong>Add to
+timeline</strong> inserts an unplaced asset at that point; <strong>On timeline</strong> prevents an
+accidental second insertion. <strong>Rename clip</strong> in the queue, library or inspector
+saves a readable asset name throughout the app without modifying its media file.
+Use <strong>Return to timeline preview</strong> to return to the rendered project preview.</p>
+<h3 id="installation-loading-and-storage">Installation, loading and storage</h3>
+<p>Installed media models and isolated inference runtimes persist in
+<code>ScriptStudioNative/local-models</code>. Normal generation does not download/install them
+again when the pinned revision is unchanged. Loading those files into RAM/VRAM for
+a generation process is still necessary. All four models are not kept resident
+together, and runtime memory cannot survive a shutdown. GPU work shares the GPU
+with other applications; duplicate submissions do not make a slow load faster.</p>
+<p>The installed local-model workspace stores its database, projects and generated
+media under <code>ScriptStudioNative/workspace-local-models</code>. Other launcher modes may
+use a different data subfolder. Keep the EXE and complete <code>ScriptStudioNative</code>
+folder together. Stop the app and wait for active work to drain before backing up
+or moving native database files. Do not merge database directories or delete media
+referenced by projects. Export important finished videos separately.</p>
+<h3 id="common-problems">Common problems</h3>
+<ul>
+<li><strong>Old address will not connect:</strong> reopen with the launcher and use its current URL.</li>
+<li><strong>Model unavailable:</strong> check Ready, access conditions and errors in Admin; use Resume, Verify or Repair as appropriate.</li>
+<li><strong>Long Wan loading:</strong> inspect activity and measured detail, available memory and disk; let healthy work continue instead of submitting duplicates.</li>
+<li><strong>Clip not placed automatically:</strong> check its placeholder, lock/selected take and automatic-fill setting; add a ready asset manually if desired.</li>
+<li><strong>Preview stale:</strong> rebuild after edits; individual clip playback is separate from the full timeline preview.</li>
+<li><strong>Final export blocked:</strong> finish/select missing media or intentionally remove unwanted placeholders. Draft export is visibly unfinished.</li>
+<li><strong>Revision conflict:</strong> refresh and reapply the intended edit; do not overwrite a concurrent completion blindly.</li>
+</ul>
+<p>For support, include project name, short job ID, provider, state/phase and exact
+error text. Logs live in the active native workspace. Review logs before sharing;
+do not publish credentials or runtime configuration containing passwords.</p>
+<h2 id="docker-development-server-startup">Docker development / server startup</h2>
+<p>Install Docker Engine/Desktop with Compose v2+ (WSL2 integration enabled on Windows).
+Allow about 4 GB RAM and several GB of disk space for images and media.</p>
+<pre><code class="language-bash">cp .env.example .env
+docker compose up -d --build
+</code></pre>
+<p>Open <strong>http://localhost:8088</strong>. Only the web port is published, bound to loopback.
+Use <strong>Light mode / Dark mode</strong> in any page header to switch the interface theme.
+Dark is the default; your choice is saved in this browser and shared across tabs.
+If browser storage is blocked, switching still works for the current visit.
+Change <code>SCRIPTSTUDIO_PORT</code> in <code>.env</code> if that port is occupied. Initial build installs
+FFmpeg, eSpeak, libopenshot, Python dependencies, and frontend tooling. Subsequent
+runs do not need an Internet connection in mock mode.</p>
+<pre><code class="language-bash">docker compose ps
+docker compose logs -f worker
+docker compose stop                 # stop, preserve all projects/media
+docker compose up -d                # resume
+docker compose down                # remove containers, preserve named volumes
+</code></pre>
+<p><strong>Do not use <code>docker compose down -v</code> unless you intend to erase your projects.</strong></p>
+<h2 id="standalone-native-windows-exe">Standalone native Windows EXE</h2>
+<p>The native package is <code>artifacts/native/ScriptStudio-Native-Windows-x64.exe</code>.
+It bundles Windows Python, PostgreSQL, OpenShot, FFmpeg, offline narration, and
+the browser interface. Docker, WSL, Redis, installed Python, and Node are not
+required to run it. Start studio from the launcher and keep that window open.
+Closing it drains active work and stops its services. Data lives under the selected workspace directory in
+<code>ScriptStudioNative</code> beside the EXE, separately from the Docker installation.</p>
+<p>See <a href="https://github.com/waptug/ScriptStudio/blob/master/packaging/native/README.md">native packaging, operation, and build instructions</a>
+and <a href="https://github.com/waptug/ScriptStudio/blob/master/docs/verification.md">validation evidence</a>. The launcher uses the .NET
+Framework included with Windows 10/11; the EXE is unsigned.</p>
+<p>For local AI narration, music, and video, use <strong>Admin → Local models</strong> in the
+native Windows app. See <a href="https://github.com/waptug/ScriptStudio/blob/master/docs/local-models.md">the local-model usage guide</a> for
+Ollama writing/planning, Kokoro voices, ACE-Step music, Wan video, and
+Stable Audio access requirements. Downloads and isolated inference runtimes stay
+beside the EXE. Local generation is separate from mock and paid providers.</p>
+<h2 id="earlier-docker-based-windows-exe-package">Earlier Docker-based Windows EXE package</h2>
+<p>Build an offline Windows application package with
+<code>python3 packaging/windows/build.py</code> after building the Compose images. Output:
+<code>artifacts/windows/ScriptStudio-Windows-x64.exe</code>, with a SHA-256 checksum and image
+manifest alongside it. The single EXE includes the app images, matching application
+source, and notices. It still requires a running <strong>Linux Docker engine and Compose
+v2</strong>, either Docker Desktop or Docker in a running WSL distribution; it is not
+a Docker-free native port. Double-click it and choose <strong>Start studio</strong>.</p>
+<p>The launcher keeps desktop data separate from this checkout, selects a loopback
+port, and provides Start/Stop/Open controls. No user projects or credentials are
+bundled. See <a href="https://github.com/waptug/ScriptStudio/blob/master/packaging/windows/README.md">Windows packaging and operation</a>.</p>
+<h2 id="create-a-video">Create a video</h2>
+<p>You can write manually or use <strong>Script → Write with AI</strong>. Enter a video idea,
+audience, tone, and target duration, then generate a draft. Edit it in the review box
+and choose <strong>Use this script</strong> (or <strong>Replace script with this draft</strong>). Generation
+never overwrites your script automatically. Save the accepted script or choose
+<strong>Plan scenes &amp; shots</strong> to continue. Prompt/draft review state is kept in this
+browser per project; the accepted script is stored on the server when saved.</p>
+<p>Open <strong>Admin</strong> from the dashboard or editor to configure the local Ollama URL,
+list installed models, and select separate script-writing and scene-planning models.
+Admin also stores Runway/ElevenLabs model names, cost estimates, and encrypted API
+credentials. Blank key fields keep existing keys; explicit Clear controls remove them.
+Saved Admin settings override environment defaults and apply to new requests without
+restarting containers. Existing jobs retain their captured model. Under <strong>Admin →
+Paid AI generation</strong>, enable the master switch and the specific text, video, audio,
+speech, or music permission, then save. All category permissions default off.
+Credentials, supported adapters, and project budgets are still required. Turning off
+blocks new submissions, including queued jobs; already-submitted jobs can finish.</p>
+<p>See <a href="https://github.com/waptug/ScriptStudio/blob/master/docs/admin.md">Admin configuration</a> for credential storage and setup details.</p>
+<ol>
+<li>Choose <strong>Try the 60-second mock demo</strong> or <strong>New project</strong> on the dashboard. The separate local AI demo starts its own production automatically.</li>
+<li>In Project settings choose output format, visual style, voice/music providers,
+   spending ceiling, and generation concurrency. Save settings. The target duration
+   is advisory; actual narration determines timing. Set FPS before production.</li>
+<li>Write narration in paragraphs. Put unspoken visual instructions in <code>[brackets]</code>.
+   Save the script, then <strong>Plan scenes &amp; shots</strong>. Review/edit each scene and prompt.</li>
+<li><strong>Start production</strong>. Narration is generated and measured first; shot placeholders
+   and captions are then created. Completed videos fill their associated placeholders.</li>
+<li>Edit the timeline: drag clips, select an item for exact frame-based move/trim,
+   split at the ruler playhead, duplicate/delete, mute/lock, fades/volume, transform,
+   or select a different take. Undo/redo is persisted. The ruler seeks the preview.</li>
+<li>Import footage, PNG/JPEG references, music, or sound effects through <strong>Media</strong>.
+   Use its track selector to place imported assets. Regenerate shots in Storyboard;
+   the old take remains selected until you explicitly choose another in Inspector.</li>
+<li><strong>Build preview</strong> after edits. This creates a synchronized proxy-resolution MP4
+   from the same OpenShot/FFmpeg timeline used for export. The revision badge tells
+   you when the preview is stale. Seeking/playback use the browser video player.</li>
+<li><strong>Export → Render final MP4</strong>. Missing media blocks final export. Draft mode
+   permits visibly labeled visual placeholders. Download MP4, SRT, WebVTT, or the
+   <strong>Continue in OpenShot</strong> project bundle. Rendering uses an immutable revision.</li>
+</ol>
+<p>Export downloads use <code>Project name_YYYY-MM-DD_HH-MM-SSZ</code> with the appropriate
+<code>.mp4</code>, <code>.zip</code>, <code>.srt</code>, or <code>.vtt</code> extension. The timestamp is the render creation
+time in UTC. New renders capture the project name; older renders use its current
+name. Filename-unsafe characters are replaced and long names are shortened.</p>
+<p>Mock mode uses eSpeak speech, clearly labeled synthetic footage, and a locally
+synthesized instrumental bed. It does not claim to be live AI generation. Estimated
+mock word timings are labeled; ElevenLabs alignment is retained when available.</p>
+<h2 id="openshot-reuse">OpenShot reuse</h2>
+<p><code>libopenshot</code> owns visual composition, native clip/keyframe handling, alpha fades,
+transforms, and frame rendering. Its Python bindings run in an isolated system-Python
+process. FFmpeg normalizes clips, explicitly extends coverage, mixes audio with
+sidechain ducking, and encodes the final MP4. Preview/export share this pipeline.</p>
+<p>Every final render includes a ZIP containing a native <code>.osp</code> file and its media.
+Extract <strong>the entire ZIP</strong> before opening <code>ScriptStudio.osp</code> in OpenShot. Individual
+visual clips and native transform/fade keyframes remain editable. Titles/captions
+are transparent image clips. Source trims/hold/loop coverage are normalized.
+Finishing audio is supplied as one exact mix, with original narration, music, effects,
+and alternate takes also in the library. Desktop changes do not sync back to the web
+app. See <a href="https://github.com/waptug/ScriptStudio/blob/master/docs/openshot.md">OpenShot integration</a> for compatibility and provenance.</p>
+<h2 id="reproduce-the-demo-and-tests">Reproduce the demo and tests</h2>
+<p>With the Compose stack running:</p>
+<pre><code class="language-bash">docker compose exec -T api python tools/demo.py
+docker compose run --rm --no-deps api pytest -q -p no:cacheprovider
+docker compose exec -T api python -m tools.postgres_concurrency
+</code></pre>
+<p>The command-line mock demo creates a new project, runs eSpeak and synthetic-media workers, renders both
+preview and final MP4, verifies durations and HTTP range playback, and downloads the
+OpenShot bundle. It prints project/job/asset IDs. It never enables paid providers.</p>
+<p>Browser smoke (Node 22+ on the host):</p>
+<pre><code class="language-bash">npm ci --prefix frontend
+npx --prefix frontend playwright install chromium
+npm run test:browser --prefix frontend
+</code></pre>
+<p>The browser test creates a short project, produces footage, edits a title, checks
+undo/redo and reload, plays/seeks a preview, and exports MP4 plus OpenShot handoff.
+It writes a screenshot to <code>frontend/test-results/editor.png</code>.</p>
+<p>For real restart recovery (stop ordinary editing while this test runs):</p>
+<pre><code class="language-bash">docker compose stop worker beat
+docker compose exec -T api python -m tools.restart_fixture prepare
+docker compose restart redis
+docker compose start worker beat
+docker compose exec -T api python -m tools.restart_fixture verify
+</code></pre>
+<p>Unit tests cover out-of-order completion, moved/deleted/locked placeholders, duplicate
+completion, alternate takes, unknown submissions, download retry without regeneration,
+measured narration timing, revision conflicts, undo/redo, media validation, frame rates,
+and preview/export synchronization. The PostgreSQL test uses simultaneous transactions
+for real row-lock budget/concurrency enforcement. Tests create clearly labeled fixtures.</p>
+<h2 id="development">Development</h2>
+<p>Backend code is under <code>backend/studio</code>, typed contracts in <code>schemas.py</code>, database
+migration in <code>backend/migrations</code>, tests in <code>backend/tests</code>. Thin FastAPI routes are
+backed by focused services. OpenAPI is available at <code>/api/openapi.json</code> and interactive API docs at <code>/api/docs</code>.</p>
+<pre><code class="language-bash">npm run build --prefix frontend
+docker compose build
+docker compose up -d
+</code></pre>
+<p>Pin updates are deliberate: Python direct dependencies are in <code>requirements.txt</code>,
+resolved dependencies in <code>requirements.lock</code>, npm dependencies in <code>package-lock.json</code>.
+The default database is PostgreSQL; SQLite is used only for isolated unit tests.</p>
+<h2 id="documentation">Documentation</h2>
+<p>Open <strong>About this project</strong> from the dashboard or editor for foundation credits,
+the GPL-3.0-or-later project license, searchable component versions and licenses,
+and collected copyright notices. The inventory includes transitive dependencies
+and container system packages, with optional tools and source-available Redis
+clearly identified. See <a href="https://github.com/waptug/ScriptStudio/blob/master/NOTICE.md">third-party notices</a> for inventory scope and
+the refresh procedure after dependency changes.</p>
+<p>The same page includes <strong>Recreate ScriptStudio with Codex</strong>: read, copy, select,
+or download a self-contained <code>/goal</code> specification. Its canonical source is
+<code>frontend/public/codex-goal.txt</code>; the page, clipboard, and download use that one
+file. It covers functionality, invariants, the zero-dollar generation ceiling,
+and verification requirements. Use it in the Codex workspace where you intend
+to build; copying does not execute it. It specifies a functional recreation,
+not identical source code. See <a href="https://learn.chatgpt.com/use-cases/follow-goals">OpenAI's goals guide</a>.</p>
+<ul>
+<li><a href="https://github.com/waptug/ScriptStudio/blob/master/docs/providers.md">Provider setup and documented capabilities</a></li>
+<li><a href="https://github.com/waptug/ScriptStudio/blob/master/docs/architecture.md">Architecture and timeline invariants</a></li>
+<li><a href="https://github.com/waptug/ScriptStudio/blob/master/docs/openshot.md">OpenShot integration</a></li>
+<li><a href="https://github.com/waptug/ScriptStudio/blob/master/docs/operations.md">Backup, restore, and security</a></li>
+<li><a href="https://github.com/waptug/ScriptStudio/blob/master/docs/limitations.md">Known limitations</a></li>
+<li><a href="https://github.com/waptug/ScriptStudio/blob/master/docs/verification.md">Verification evidence</a></li>
+</ul>
+<p>Do not expose this installation publicly without authentication, authorization,
+TLS, CSRF protection, and upload/rate limits appropriate to your deployment.</p>
+<h2 id="license">License</h2>
+<p>The matching vector mark is in <code>frontend/public/logo.svg</code>; the multi-resolution
+Windows/browser icon is <code>frontend/public/favicon.ico</code> (16–256 pixels). Both are
+available to download from <strong>About this project</strong>. The SVG uses paths with no font
+dependency. After editing it, run <code>node scripts/generate_icon.mjs</code> to rebuild the
+ICO using the frontend's existing Playwright/Chromium installation.</p>
+<p>GPL-3.0-or-later. See <a href="https://github.com/waptug/ScriptStudio/blob/master/LICENSE">LICENSE</a> and <a href="https://github.com/waptug/ScriptStudio/blob/master/NOTICE.md">third-party notices</a>.</p>
+<h3 id="automatic-ollama-setup">Automatic Ollama setup</h3>
+<p>On opening the dashboard or Admin, ScriptStudio checks the saved Ollama URL,
+<code>OLLAMA_HOST</code> (including the Windows user environment), loopback port 11434, and
+the Docker host address in container installations. A reachable server is verified
+using <code>/api/tags</code>; its URL is saved automatically only if no URL is configured.
+Existing URLs are preserved, with <strong>Use detected URL</strong> available in Admin.
+Installed local models populate the model choices; choose writing/planning models
+and save. Discovery never generates content, downloads models, or calls cloud AI.
+If Ollama is unreachable, the setup notice links to the official installer and
+asks you to open Ollama and retry. If it has no local models, the notice asks you
+to download one in Ollama. Manual writing and mock production remain available.</p>
+<p>The AI script writer shows an activity panel while a draft request is pending, with
+a spinner, an indeterminate progress bar, and elapsed waiting time. It reports
+success or failure without replacing your saved script. Elapsed time is not a
+model completion estimate; internal model reasoning is not displayed.</p>
+<h3 id="portable-windows-storage-and-free-space">Portable Windows storage and free space</h3>
+<p>The native launcher resolves its EXE folder, independently of the current working
+directory. Runtime packages, PostgreSQL, projects, logs, temporary files, caches,
+and the dedicated Edge/Chrome browser profile stay in <code>ScriptStudioNative</code> beside
+the EXE. Browser downloads default to <code>ScriptStudioNative/downloads</code>. Move the
+EXE and that folder together while the launcher is closed. The browser profile
+is separate from your usual browser; Windows and separately installed Ollama
+remain responsible for their own system files and model storage.</p>
+<p>Before extraction, the launcher checks free space on the actual destination
+volume for the expanded archive (plus filesystem overhead) and 2 GiB of working
+space. Cached launches require 2 GiB free. It reads the ZIP directly from the
+EXE, without creating a second compressed copy. Insufficient space shows required
+and available space and closes the launcher after acknowledgement, before any
+services start. The 2 GiB reserve is a startup minimum, not an estimate of space
+needed for arbitrary future video projects. Use a writable local folder.</p>
+<p>Older versions stored projects in <code>%LOCALAPPDATA%\ScriptStudioNative\data</code>.
+To retain those projects, stop and close the old launcher, then move that complete
+<code>data</code> directory into the new <code>ScriptStudioNative</code> folder <strong>before first start</strong>.
+Do not merge two database directories. The launcher identifies legacy data but
+never copies a potentially running database or deletes existing projects.</p>
+<h3 id="regenerate-bundled-documentation">Regenerate bundled documentation</h3>
+<p>The Markdown sources are <code>README.md</code> and <code>docs/user-manual.md</code>. After editing them,
+regenerate the browser guides and Word download before building the frontend:</p>
+<pre><code class="language-bash">python3 -m venv /tmp/scriptstudio-docs
+/tmp/scriptstudio-docs/bin/pip install -r scripts/docs-requirements.txt
+/tmp/scriptstudio-docs/bin/python scripts/generate_user_docs.py
+npm run build --prefix frontend
+</code></pre>
+<p>The generated files in <code>frontend/public</code> are committed so normal application
+builds and native packages include the guides without document conversion tools.</p></main>
+</body></html>

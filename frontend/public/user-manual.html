@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ScriptStudio User Manual</title><style>body{font-family:system-ui,sans-serif;color:#203040;line-height:1.6;max-width:920px;margin:auto;padding:32px 24px;background:white}h1,h2,h3{color:#164e63;line-height:1.25}h2{padding-top:20px;border-bottom:1px solid #c3d0d8}a{color:#155cb0}pre,code{background:#edf2f5;overflow-wrap:anywhere}pre{padding:16px;white-space:pre-wrap}table{border-collapse:collapse;display:block;overflow:auto}th,td{border:1px solid #c3d0d8;padding:10px;text-align:left}nav,.toc{background:#f3f7fa;padding:16px;margin-bottom:24px}nav{display:flex;gap:18px;flex-wrap:wrap}img{max-width:100%}a:focus-visible{outline:3px solid #155cb0;outline-offset:3px}@media print{nav,.toc{display:none}body{padding:0;max-width:none}h2,h3{break-after:avoid}}</style></head><body><nav aria-label="Documentation"><a href="/">ScriptStudio</a><a href="/user-manual.html">User manual</a><a href="/ScriptStudio-User-Manual.docx" download>Download Word manual (.docx)</a><a href="/README.html">README</a><a href="/README.md" download>Download README.md</a></nav><aside aria-label="Contents"><div class="toc">
+<ul>
+<li><a href="#scriptstudio-user-manual">ScriptStudio User Manual</a><ul>
+<li><a href="#1-start-here">1. Start here</a><ul>
+<li><a href="#choose-a-starting-point">Choose a starting point</a></li>
+</ul>
+</li>
+<li><a href="#2-find-your-way-around">2. Find your way around</a></li>
+<li><a href="#3-understand-mock-local-and-paid-providers">3. Understand mock, local, and paid providers</a></li>
+<li><a href="#4-install-and-reuse-local-models">4. Install and reuse local models</a><ul>
+<li><a href="#installed-does-not-mean-permanently-loaded">Installed does not mean permanently loaded</a></li>
+</ul>
+</li>
+<li><a href="#5-write-a-clear-script">5. Write a clear script</a><ul>
+<li><a href="#optional-writing-with-ollama">Optional writing with Ollama</a></li>
+</ul>
+</li>
+<li><a href="#6-plan-scenes-and-start-production">6. Plan scenes and start production</a></li>
+<li><a href="#7-read-the-color-coded-production-queue">7. Read the color-coded production queue</a><ul>
+<li><a href="#a-job-says-loading-for-a-long-time">A job says Loading for a long time</a></li>
+</ul>
+</li>
+<li><a href="#8-preview-locate-and-name-completed-clips">8. Preview, locate, and name completed clips</a><ul>
+<li><a href="#add-a-clip-to-the-timeline">Add a clip to the timeline</a></li>
+<li><a href="#give-a-clip-a-readable-name">Give a clip a readable name</a></li>
+</ul>
+</li>
+<li><a href="#9-edit-the-timeline">9. Edit the timeline</a></li>
+<li><a href="#10-import-media-and-add-sound-effects">10. Import media and add sound effects</a></li>
+<li><a href="#11-build-previews-and-export">11. Build previews and export</a><ul>
+<li><a href="#continue-editing-in-openshot">Continue editing in OpenShot</a></li>
+</ul>
+</li>
+<li><a href="#12-use-the-built-in-local-ai-introduction">12. Use the built-in local AI introduction</a></li>
+<li><a href="#13-save-back-up-and-move-the-workspace">13. Save, back up, and move the workspace</a></li>
+<li><a href="#14-troubleshooting-and-getting-help">14. Troubleshooting and getting help</a></li>
+<li><a href="#15-quick-reference-and-limits">15. Quick reference and limits</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</aside><main><h1 id="scriptstudio-user-manual">ScriptStudio User Manual</h1>
+<p>A practical guide to writing, generating, editing, and exporting a video.</p>
+<p>Edition: 20 September 2026. This guide covers the native Windows local-model workspace and the current browser editor. Your launcher chooses the workspace address; use its Open studio control rather than an old saved port.</p>
+<h2 id="1-start-here">1. Start here</h2>
+<p>ScriptStudio turns a written script into narration, visual shots, captions, and music. You review those results, arrange a timeline, and export a video. Generated media and project records are saved on the local workstation.</p>
+<p>For the installed Windows workspace, open the ScriptStudio Local Models desktop shortcut. The executable is ScriptStudio-Local-Models.exe in the ScriptStudio folder. Wait for the launcher to open the editor. If the launcher is already running, use Open studio instead of launching another workspace. Keep the launcher open while generation or rendering is underway.</p>
+<p>The browser is the control panel. The native app and its background worker perform the work. Closing a browser tab does not cancel a submitted job, but closing or stopping the launcher begins service shutdown. Use the launcher's normal Stop control and allow active work to drain before moving files or shutting down the computer. For a long demo, leave the app and computer running and prevent sleep.</p>
+<p>The native Windows package includes its own Python, PostgreSQL database, OpenShot rendering support, and FFmpeg. You do not need to install Docker, Node, or Python to run that package. Ollama is a separate optional application for writing scripts and planning visual shots.</p>
+<h3 id="choose-a-starting-point">Choose a starting point</h3>
+<ul>
+<li>New project: create your own script and choose your providers.</li>
+<li>Try the 60-second mock demo: load sample content for learning the workflow with eSpeak narration and labeled synthetic media. Review its settings, plan, and start production.</li>
+<li>Create 60-second ScriptStudio demo · local AI: create and start a scripted introduction using Kokoro, twelve Wan shots, and ACE-Step music. It automatically assembles and exports when generation is ready.</li>
+</ul>
+<p>The local AI demo can take several hours on a consumer GPU. It is not a one-minute processing job: one minute describes the finished video. Its unedited timeline is exactly 60 seconds. Ordinary projects use target duration as a planning guide and follow measured narration length.</p>
+<h2 id="2-find-your-way-around">2. Find your way around</h2>
+<p>The dashboard lists saved projects. Select a project card to reopen its script, assets, jobs, and timeline. Project data remains in the workspace across normal app restarts.</p>
+<p>The header provides project controls, a light/dark theme switch, About this project, Admin, and export access. The User manual link opens this guide; the Word download is available from the guide and About. About also links to the README, licenses, component inventory, brand downloads, and the recreation specification.</p>
+<p>Inside an editor, use the navigation tabs:</p>
+<ul>
+<li>Script: write or review narration and choose how to plan it.</li>
+<li>Storyboard: inspect scenes and shot prompts before production; regenerate visual takes afterward.</li>
+<li>Media: browse generated and imported assets, import files, or generate sound effects.</li>
+<li>Settings: choose output format, providers, voice, style, budget, and concurrency.</li>
+</ul>
+<p>The main preview area plays either a rendered timeline preview or an individual completed clip. The side panel shows the clip inspector or production queue. The timeline is below the editor. Use its zoom control to spread out short clips or view a longer sequence.</p>
+<h2 id="3-understand-mock-local-and-paid-providers">3. Understand mock, local, and paid providers</h2>
+<p>Mock mode is a fast demonstration mode. It makes playable speech, synthetic footage, and instrumental audio locally, but it does not claim those visuals are model-generated.</p>
+<p>Local AI uses installed media models. Kokoro supplies narration; Wan supplies generated video; ACE-Step supplies music; Stable Audio supplies sound effects. These jobs have no external provider fee. They still use your computer's memory, GPU, electricity, and disk space.</p>
+<p>Paid providers are a separate workflow. Admin permissions, credentials, supported adapters, and a project budget are required. They are not needed for the local demo. Leave paid generation disabled if you only want local work. A project can mix provider types, so check narration, video, and music individually: local speech with mock video is not a fully model-generated video.</p>
+<h2 id="4-install-and-reuse-local-models">4. Install and reuse local models</h2>
+<p>Open Admin, then Local models. Read each model's description and displayed license/access conditions. Choose Install for the model you need and wait for Ready before selecting it in project settings. Installation may include downloading model files, unpacking a separate runtime, verifying files, and checking that runtime.</p>
+<p>During installation, the progress panel identifies the stage, current file or measured bytes where available, elapsed time, and installer activity. A moving striped bar means there is no trustworthy percentage for that stage. A measured percentage applies to the current stage, not necessarily the entire installation.</p>
+<p>Use Resume after an interrupted download when available. Verified files and partial downloads are reused where possible. Use Verify when you deliberately want to check an installation, and Repair when it is damaged. Repeatedly pressing Install on an already Ready model should not reinstall it.</p>
+<h3 id="installed-does-not-mean-permanently-loaded">Installed does not mean permanently loaded</h3>
+<p>Model files stay on disk under ScriptStudioNative/local-models. Normal app launches and generation do not need to download and install them again when the pinned version is unchanged. However, a generation process still needs to load weights into RAM or GPU memory. Memory cannot survive a computer restart, and the app does not keep all four large models resident together.</p>
+<p>Kokoro uses the CPU. GPU media work shares the NVIDIA GPU, and ScriptStudio coordinates with idle Ollama models to free memory. Other programs can still consume that memory. Avoid competing heavy GPU work while a video job is running. Increasing project concurrency does not make the GPU's memory larger.</p>
+<p>Stable Audio can require upstream account access and an authorized Hugging Face token in Admin, in addition to accepting its displayed license. An app checkbox does not grant access on the model host. Keep credentials in Admin rather than in prompts or documents. Consult the displayed model terms for your intended use.</p>
+<h2 id="5-write-a-clear-script">5. Write a clear script</h2>
+<p>Create a project, open Settings, and give it a descriptive name. Set the output size, aspect, and frame rate before production. Select Kokoro with a stock voice, Wan video, and ACE-Step music for a fully local AI workflow, then save the settings.</p>
+<p>Write spoken words as ordinary text. Separate scenes with blank lines. Put unspoken visual directions inside square brackets. For example:</p>
+<p>[Wide view of a quiet creative studio. Warm morning light. Slow camera movement.]
+Meet ScriptStudio, a local workspace for turning ideas into finished videos.</p>
+<p>Only the sentence outside brackets becomes narration. Close every bracket before planning. The live spoken-word estimate excludes visual directions; it is a planning estimate, not a promise about final speech duration.</p>
+<p>For better visual results, describe what should be visible: the subject, setting, action, lighting, and camera movement. Keep one shot's request focused. A generated image of a software interface may contain imperfect text; use timeline titles or real imported screen footage when exact words or interface details matter.</p>
+<h3 id="optional-writing-with-ollama">Optional writing with Ollama</h3>
+<p>Open Admin to discover a running Ollama server, list installed models, and choose a script-writing model. In Script, choose Write with AI, enter the idea, audience, tone, and target duration, then generate a draft. Review and edit the draft before choosing Use this script. Save the accepted script. Generating a draft does not automatically replace your saved narration.</p>
+<p>If Ollama is unavailable, you can still write manually and use the deterministic planner. Installing a media model such as Wan does not install an Ollama writing model.</p>
+<h2 id="6-plan-scenes-and-start-production">6. Plan scenes and start production</h2>
+<p>Choose a script planner and select Plan scenes &amp; shots. The deterministic planner uses your paragraphs and spoken passages. The optional local Ollama planner can choose visuals and group adjacent passages while preserving the original narration.</p>
+<p>Review the storyboard before starting. Check that every scene says the right words and every visual prompt describes what you actually want to see. Fix mistakes now to avoid generating unnecessary footage. Save any relevant project settings before beginning production.</p>
+<p>Select Start production once. The app queues narration, measures its duration, creates captions and visual placeholders, then queues the required video and music jobs. Empty placeholders reserve space on the timeline while generation runs. Completed media fills its surviving eligible placeholder when automatic filling is enabled.</p>
+<p>Do not repeatedly start or regenerate the same work merely because loading is slow. New generations are separate jobs and can create extra takes. After production begins, start a new project if you need a substantially rewritten narration or a fresh scene structure. Existing production captures its script and settings; changing defaults does not rewrite running jobs.</p>
+<h2 id="7-read-the-color-coded-production-queue">7. Read the color-coded production queue</h2>
+<p>Open Queue from the side panel or View queue near the preview. Each job shows its provider, state, applicable phase sequence, and available detail. Different providers have different phases; a mock job may omit model loading and transfer.</p>
+<ul>
+<li>Gray — Queued: waiting for its turn or required resources.</li>
+<li>Blue — Prepare or Load model: getting the runtime and model ready.</li>
+<li>Purple — Generate or Render: producing model output or composing video frames.</li>
+<li>Cyan — Save, Download, or Encode: writing, retrieving, or encoding the result.</li>
+<li>Amber — Check: validating media before publishing it as an asset.</li>
+<li>Green — Ready: the validated result is available.</li>
+</ul>
+<p>Completed phases keep their color and checkmark. The current phase is outlined and may have a measured fill or moving stripes. Future phases are dimmed. These equal-width segments show sequence, not equal processing time and not a reliable overall percentage.</p>
+<p>Step counts such as 19 / 30 are measured generation steps. Loading may report component or checkpoint counts. Those counts describe that subtask only. Elapsed time shows how long work has taken; it does not say how much remains. A process contact or heartbeat indicates communication, not necessarily new measured progress.</p>
+<h3 id="a-job-says-loading-for-a-long-time">A job says Loading for a long time</h3>
+<p>Large Wan weights can take many minutes to load, particularly under RAM pressure or on a busy disk. A growing elapsed timer alone proves neither a freeze nor successful progress. Check the reported phase, loading counts, activity/contact information, and whether the browser is connected. Allow a healthy loading process to continue rather than submitting duplicates.</p>
+<p>A connection-lost message means the editor cannot confirm fresh status. Reopen through the launcher or retry after connectivity returns; the durable job may still be running. If the app reports an actual failure, read its error and retry the saved job after resolving the cause. Persistent uncertainty merits checking model readiness, free disk space, and the relevant local log with support.</p>
+<h2 id="8-preview-locate-and-name-completed-clips">8. Preview, locate, and name completed clips</h2>
+<p>When an audio or video job is Ready, its queue card offers Preview clip. Select it to play the original clip in the main preview window. If automatic playback is blocked by the browser, press Play there.</p>
+<p>Previewing also selects and scrolls to an existing placement of that asset on the timeline. The selected clip has a visible outline. If you have multiple placements, the currently selected matching placement is preferred; otherwise the first matching placement is selected. If the asset has not been placed, the preview says Not on timeline yet.</p>
+<p>Clip playback has its own timer. Watching it does not move the timeline insertion point. Return to timeline preview switches back to the project's rendered preview. Preview clip is useful immediately after generation; Build preview is for watching the complete edited timeline with its mixed audio.</p>
+<h3 id="add-a-clip-to-the-timeline">Add a clip to the timeline</h3>
+<p>Set the timeline playhead where you want the clip to begin, then choose Add to timeline on the ready job. The full clip is added to the appropriate video or audio track. Existing items are preserved; they are not automatically pushed aside, so inspect any overlaps you create.</p>
+<p>If the asset is already placed, the button reads On timeline and is disabled to avoid accidental duplicates. For an intentional second instance, select the existing timeline item and use Duplicate, or use the media library's track selector.</p>
+<h3 id="give-a-clip-a-readable-name">Give a clip a readable name</h3>
+<p>Choose Rename clip on the queue card, in the media library, or in the selected clip's inspector. Enter a descriptive name such as Opening studio shot or Gentle background music, then choose Save name. Cancel leaves the old name intact. Names cannot be blank and are limited to 200 characters.</p>
+<p>The saved name appears wherever that asset is displayed or placed. Renaming does not rename the underlying media file, change its timing, or regenerate it. If another save changed the name first, refresh and try again. Naming is asset-wide: copies of the same asset share that name. Undo/Redo controls timeline edits; do not rely on them to undo a name change.</p>
+<h2 id="9-edit-the-timeline">9. Edit the timeline</h2>
+<p>Select a timeline clip to open its inspector. Main video, overlays, titles, captions, narration, music, and sound effects occupy separate tracks. The ruler and time display help you locate the insertion point. Zoom changes the view, not the clip durations.</p>
+<p>Drag an unlocked clip to move it. With Snap enabled, nearby starts and ends help align clips. Use inspector frame fields for precise positions, duration, and source trim. At 24 frames per second, 120 frames equals five seconds. Project frame rate is fixed once production begins.</p>
+<ul>
+<li>Split at playhead divides an eligible selected item at that position.</li>
+<li>Duplicate creates another timeline instance.</li>
+<li>Delete item removes the placement; it does not instruct the app to erase all saved source media.</li>
+<li>Lock protects an item from ordinary edits and automatic replacement. Unlock it to edit again.</li>
+<li>Mute excludes that item's contribution from the output.</li>
+<li>Undo and Redo restore timeline edits and are saved with the project.</li>
+</ul>
+<p>Source in chooses where playback begins within a source. Short video can hold its last frame or loop according to Coverage. Audio is not accelerated to make it fit. Supported fades, volume, transform, and transition controls depend on the track. Use modest music volume so narration stays intelligible.</p>
+<p>Regenerate a shot from Storyboard to request another take. Earlier takes are retained. In the inspector, choose Selected take to use the version you want. Background completion must not overwrite a take you explicitly selected, revive a deleted placeholder, or move/trim a clip you already edited.</p>
+<h2 id="10-import-media-and-add-sound-effects">10. Import media and add sound effects</h2>
+<p>Open Media and choose Import footage, audio, or images. The importer supports common video and audio formats plus PNG/JPEG images; the app validates media before publishing it. After import, use that asset's Add to timeline track selector. Importing a file and placing it are separate actions.</p>
+<p>Supported extensions include MP4, MOV, WEBM, WAV, MP3, M4A, OGG, FLAC, PNG, JPG, and JPEG. The current API upload limit is 512 MiB. If import fails, check the error, file size, supported format, and whether the file plays correctly outside the app.</p>
+<p>To create a sound effect, expand Generate a local sound effect in Media. Describe the sound in English, select a duration up to 11 seconds, position the playhead, and generate. Stable Audio must be Ready. The requested sound-effect placement is created at that playhead position.</p>
+<p>Imported video source audio is not automatically included in the mix. Place separate audio on narration, music, or sound-effects tracks when it is needed. Uploaded reference images can guide supported providers; a reference asset does not guarantee that every local model uses image conditioning.</p>
+<h2 id="11-build-previews-and-export">11. Build previews and export</h2>
+<p>After editing, choose Build preview. This renders a synchronized lower-resolution view of the timeline through the same compositor used for export. The preview revision tells you which edit it represents. If you edit afterward, rebuild it; the old preview does not change in real time.</p>
+<p>For the finished file, open Export, review draft and caption options, and choose Render final MP4. Final rendering requires valid media for all required placements. Draft mode permits visibly marked missing visual placeholders and should not be mistaken for a completed model-generated video.</p>
+<p>A render uses a snapshot of the timeline. Editing while it runs does not alter that snapshot. If you want those new edits in the file, submit a new render afterward. Completed renders provide Download MP4, subtitle downloads, and an OpenShot bundle. The render's queue card also supports Preview clip.</p>
+<p>Download filenames include the project name and render timestamp. Browser downloads normally go to the native workspace's downloads area unless your browser asks for another location. Check the browser's Downloads list if a file is not where you expected.</p>
+<h3 id="continue-editing-in-openshot">Continue editing in OpenShot</h3>
+<p>Download Continue in OpenShot, extract the entire ZIP, and open ScriptStudio.osp from the extracted folder. Keep its media together. The handoff is one-way: edits made in desktop OpenShot do not automatically return to ScriptStudio. Titles/captions are image clips, and the finished audio is provided as a mixed track with original sources retained for further work.</p>
+<h2 id="12-use-the-built-in-local-ai-introduction">12. Use the built-in local AI introduction</h2>
+<p>On the dashboard, select Create 60-second ScriptStudio demo · local AI. Kokoro, Wan, and ACE-Step must already be Ready. The button creates a separate project called Introducing ScriptStudio with an introduction explaining scripts, planning, local generation, queue progress, previews, naming, editing, captions, and exporting.</p>
+<p>The demo first creates natural narration. It then builds twelve five-second visual placements and a full-minute music track. Wan produces twelve distinct source clips; ACE-Step produces the music. The untouched timeline totals exactly 60 seconds at 24 fps. Shorter narration leaves the remaining time for the visuals and music rather than slowing or stretching speech.</p>
+<p>Every generation job must reach Ready before automatic final export is queued. If a job fails, resolve its cause and use Retry on that saved job. If narration unexpectedly exceeds 60 seconds, assembly stops with an explanation rather than cutting or accelerating speech. Reopening the browser is safe; queue and assembly records are durable.</p>
+<p>Manual edits are honored and can change the final duration. Turning off automatic placement also disables automatic export. If you remove or lock required placements, the app will not recreate or overwrite them merely to finish the demo. Once all media is ready, you can always inspect the timeline and render manually.</p>
+<h2 id="13-save-back-up-and-move-the-workspace">13. Save, back up, and move the workspace</h2>
+<p>Use the visible save controls for script and project settings. Timeline operations save through the server and update the saved revision. If a save fails, read the error instead of assuming that the screen's current text is persisted. A revision conflict means another update occurred; refresh and reapply your intended edit.</p>
+<p>In this installed workspace, project data is under ScriptStudioNative/workspace-local-models beside the EXE. Other launcher modes can use a different data subfolder. Installed media models are under ScriptStudioNative/local-models. Generated media, original assets, previews, logs, and database files are all part of the larger workspace, not just the small launcher EXE.</p>
+<p>Before a full-folder backup or move, stop the app normally and wait for shutdown. Copy the EXE and the complete ScriptStudioNative folder together to retain the native environment. Do not merge two database directories, delete database files to fix an error, or copy a running database and assume it is a consistent backup. See the README and operations guide for developer/database backup procedures.</p>
+<p>Export important MP4 files separately as well. Do not remove original media or old takes until you understand which projects still reference them. Large models, generated clips, normalized media, and repeated exports can consume substantial disk space; leave room on the actual workspace drive.</p>
+<h2 id="14-troubleshooting-and-getting-help">14. Troubleshooting and getting help</h2>
+<p>App will not open: use the launcher and wait for its status. Try its Open studio control. An old bookmarked port may refer to another workspace. Check its error message and available disk space before launching extra copies.</p>
+<p>Model is not selectable: open Admin → Local models and check Ready, license/access requirements, and any installation error. Resume an interrupted install; verify or repair only when needed.</p>
+<p>Queue is waiting for GPU: allow the active GPU job to finish and close unrelated GPU-heavy workloads if appropriate. More queued copies do not help. The app may unload idle Ollama models to free memory.</p>
+<p>Preview is blank or out of date: distinguish Preview clip from the full timeline preview. Check the selected asset and browser Play button, then rebuild the timeline preview after edits. A deleted or unavailable asset cannot be previewed.</p>
+<p>Clip did not automatically appear: check the automatic-fill setting and whether its original placeholder still exists, is unlocked, and remains eligible. Use Add to timeline if the clip is ready and you want a new placement.</p>
+<p>Export is blocked by missing media: inspect placeholders and selected takes. Finish generation, select valid media, or deliberately remove an unwanted item. Use draft export only when you want visibly unfinished visual placeholders.</p>
+<p>Unknown paid submission outcome: do not blindly submit it again. Recover or reconcile the existing provider task through the available controls. This state is different from a local Wan loading phase.</p>
+<p>For support, record the project name, short job ID, provider, state, phase, last visible activity, and exact error text. Native logs are in the active workspace; a local inference log is normally under media/tmp/local-JOB-ID/inference.log. Share the relevant error after reviewing it for private information. Never share API keys, saved credential fields, or runtime configuration containing passwords.</p>
+<h2 id="15-quick-reference-and-limits">15. Quick reference and limits</h2>
+<p>To learn fast, start with mock content. To generate real media, choose local providers explicitly. To inspect one result, use Preview clip. To hear the complete mix, Build preview. To create a shareable file, Render final MP4. To understand a delay, read the current phase and measured detail rather than only its elapsed timer.</p>
+<p>ScriptStudio is a local, single-user application. It does not provide automatic cloud collaboration, guaranteed lip synchronization, perfect text inside generated visuals, or a full real-time preview compositor. Model output can require another take or manual editing. The current Wan preset generates 81 frames at 16 fps, at 832 × 480; a longer placement may require explicit coverage behavior.</p>
+<p>About this project contains the app's GPL license and third-party notices. Model and service terms are separate from the application license. The README provides the source repository, developer setup, architecture, validation commands, and supporting guides.</p></main>
+</body></html>
