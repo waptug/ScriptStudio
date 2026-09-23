@@ -67,7 +67,7 @@ def serve(root, data, requested_port):
     os.environ['PATH'] = os.pathsep.join(str(root / p) for p in
         ['ffmpeg/bin', 'speech', 'postgres/bin', 'python', 'msvc']) + os.pathsep + os.environ.get('SystemRoot', r'C:\Windows') + r'\System32'
     os.environ.update(DATABASE_URL=f"postgresql+psycopg://studio:{config['password']}@127.0.0.1:{config['db_port']}/scriptstudio",
-        MEDIA_ROOT=str(data / 'media'), LOCAL_MODELS_ROOT=str(data.parent / 'local-models'), OPENSHOT_PYTHON=str(root / 'openshot/MediaHost.exe'),
+        SCRIPTSTUDIO_RESOURCE_DIR=str(data), MEDIA_ROOT=str(data / 'media'), LOCAL_MODELS_ROOT=str(data.parent / 'local-models'), OPENSHOT_PYTHON=str(root / 'openshot/MediaHost.exe'),
         MOCK_FONT='DejaVuSans.ttf', ESPEAK_DATA_PATH=str(root / 'speech'),
         PYTHONUTF8='1', FFMPEG_FILTER_SCRIPT_OPTION='-/filter_complex', LIVE_GENERATION_ENABLED='false')
     for key in ('RUNWAY_API_KEY', 'ELEVENLABS_API_KEY'):

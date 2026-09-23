@@ -365,3 +365,6 @@ npm run build --prefix frontend
 
 The generated files in `frontend/public` are committed so normal application
 builds and native packages include the guides without document conversion tools.
+
+Automatic native render-session resource reservation and restoration are described
+in [resource optimization](docs/resource-optimization.md).

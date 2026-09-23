@@ -1,5 +1,22 @@
 # ScriptStudio implementation plan
 
+## Automatic native render resources (2026-09-22)
+
+- [x] Reserve configured background containers, power plan and supervisor priority
+  before native local generation and export jobs start.
+- [x] Keep one reservation across overlapping jobs and retries; restore when the
+  queue is terminal and active worker calls have drained.
+- [x] Journal mutations and recover from partial failures, parent process death
+  and interrupted sessions using an independent recovery guardian.
+- [x] Document workspace configuration and restoration state.
+- [x] Validate 110 backend tests (two native-only skips), eight Windows tests,
+  independent parent-death recovery and cross-process reservation exclusion.
+- [x] Deploy to the installed native package and verify a real API export:
+  all 15 configured background containers paused and resumed, downloadable MP4,
+  idle journal with no pending actions or errors.
+  Evidence: `D:\ScriptStudio\resource-optimization\live-code-verification.json`.
+
+
 ## Docker projects copied to D: (2026-09-19)
 
 - [x] Use the current Docker projects as the migration source, per user direction;
