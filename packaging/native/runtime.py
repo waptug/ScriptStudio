@@ -43,6 +43,9 @@ def main():
     # Windows denies a second supervisor access to this byte lock.
     sys.path.insert(0, str(root / 'backend'))
     from studio.platform_runtime import exclusive_file_lock
+    if os.getenv('SCRIPTSTUDIO_SETUP_DISABLE_PAID') != '1':
+        with exclusive_file_lock(data.parent / 'setup.lock'):
+            pass  # Refuse launch while setup is backing up or changing components.
     with exclusive_file_lock(data / 'runtime.lock'):
         serve(root, data, args.port)
 
@@ -91,6 +94,8 @@ def serve(root, data, requested_port):
     started = False
     stop = threading.Event()
     worker = None
+    ollama = None
+    ollama_url = None
     try:
         pg_run('pg_ctl.exe', 'start', '-D', str(db), '-l', str(data / 'postgres.log'),
                '-o', f"-h 127.0.0.1 -p {config['db_port']}", '-w')
@@ -103,6 +108,35 @@ def serve(root, data, requested_port):
         from alembic.config import Config
         from alembic import command
         command.upgrade(Config(str(root / 'backend/alembic.ini')), 'head')
+        if os.getenv('SCRIPTSTUDIO_SETUP_DISABLE_PAID') == '1':
+            from studio.configuration import ConfigurationService, AdminUpdate
+            ConfigurationService().save(AdminUpdate(paid_generation={'enabled': False}))
+        llm_state = data.parent / 'local-llm/service.json'
+        if llm_state.exists():
+            try:
+                service = json.loads(llm_state.read_text())
+                if service.get('external_url') == 'http://127.0.0.1:11434':
+                    ollama_url = service['external_url']
+                elif service.get('executable'):
+                    executable = Path(service['executable']).resolve()
+                    if not executable.is_relative_to((data.parent / 'local-llm').resolve()):
+                        raise ValueError('Private Ollama executable must be application-owned')
+                    if 'ollama_port' not in config:
+                        config['ollama_port'] = free_port()
+                        config_path.write_text(json.dumps(config), encoding='utf-8')
+                    ollama_url = f"http://127.0.0.1:{config['ollama_port']}"
+                    environment = dict(os.environ, OLLAMA_HOST=f"127.0.0.1:{config['ollama_port']}",
+                        OLLAMA_MODELS=service['models'], OLLAMA_NO_CLOUD='1', OLLAMA_KEEP_ALIVE='0')
+                    ollama = subprocess.Popen([str(executable), 'serve'], env=environment,
+                        stdout=open(data / 'ollama.log', 'ab'), stderr=subprocess.STDOUT,
+                        creationflags=subprocess.CREATE_NO_WINDOW)
+                if ollama_url:
+                    os.environ['OLLAMA_URL'] = ollama_url
+                    if service.get('gemma'):
+                        os.environ.update(OLLAMA_MODEL='gemma3:4b', SCRIPT_WRITER_MODEL='gemma3:4b')
+            except (OSError, ValueError, KeyError):
+                logging.exception('Optional Ollama startup failed; core remains available')
+                ollama_url = None
         from studio.native_worker import serve as work
         from studio.api import app
         from starlette.staticfiles import StaticFiles
@@ -116,7 +150,7 @@ def serve(root, data, requested_port):
                 time.sleep(.1)
             if server.started:
                 ready_path.write_text(json.dumps({'url':f"http://127.0.0.1:{config['port']}",
-                    'pid':os.getpid(), 'runtime':'native-windows', 'database':'PostgreSQL'}), encoding='utf-8')
+                    'pid':os.getpid(), 'runtime':'native-windows', 'database':'PostgreSQL', 'ollama_url':ollama_url}), encoding='utf-8')
             while not server.should_exit:
                 if stop_path.exists():
                     server.should_exit = True
@@ -131,6 +165,12 @@ def serve(root, data, requested_port):
             worker.join()  # Drain active jobs before stopping their durable database.
         if started:
             pg_run('pg_ctl.exe', 'stop', '-D', str(db), '-m', 'fast', '-w')
+        if ollama and ollama.poll() is None:
+            ollama.terminate()
+            try:
+                ollama.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                ollama.kill()
 
 
 if __name__ == '__main__':

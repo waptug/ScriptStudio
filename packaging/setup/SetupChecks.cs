@@ -1,0 +1,41 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+static class SetupChecks {
+ [STAThread] static int Main(){
+  SetupProgram.Manifest=SetupProgram.Json.Deserialize<Dictionary<string,object>>(File.ReadAllText(Environment.GetCommandLineArgs()[1]));
+  var inventory=new Dictionary<string,object>{{"windows_build",22000},{"installation_type","Client"},{"architecture","AMD64"},{"logical_cores",4},{"ram_total_bytes",8*SetupProgram.GiB},{"browser","detected"},{"sse2",true},{"nvidia","Unknown"}};
+  if(SetupProgram.Reason(inventory,"core")!=null||SetupProgram.Reason(inventory,"kokoro")!=null)throw new Exception("Core/CPU screening failed");
+  if(SetupProgram.Reason(inventory,"gemma")==null||SetupProgram.Reason(inventory,"wan")==null)throw new Exception("Insufficient hardware accepted");
+  inventory["ram_total_bytes"]=32*SetupProgram.GiB;
+  if(SetupProgram.Reason(inventory,"wan")==null)throw new Exception("Unknown GPU accepted");
+  inventory["nvidia"]="NVIDIA RTX, 12288, 9000, 560.0, 8.6";
+  if(SetupProgram.Reason(inventory,"wan")!=null)throw new Exception("Eligible GPU refused");
+  if(SetupProgram.Reason(inventory,"stable_audio")==null)throw new Exception("Gated access silently accepted");
+  inventory["windows_build"]=19045;if(SetupProgram.Reason(inventory,"core")==null)throw new Exception("Windows 10 accepted");
+  inventory["windows_build"]=null;if(SetupProgram.Reason(inventory,"core")==null)throw new Exception("Unknown Windows accepted");
+  inventory["windows_build"]=22000;
+  string root=Path.Combine(Path.GetDirectoryName(Environment.GetCommandLineArgs()[1]),"preaccept");
+  string app=Path.Combine(root,"application"),storage=Path.Combine(root,"storage");
+  var plan=SetupProgram.Plan(inventory,app,storage,new[]{"gemma"});
+  if(Directory.Exists(root))throw new Exception("Preaccept scan created files");
+  string reuse=Path.Combine(Path.GetDirectoryName(Environment.GetCommandLineArgs()[1]),"reuse-fixture");Directory.CreateDirectory(reuse);
+  string artifact=Path.Combine(reuse,"model.bin");File.WriteAllText(artifact,"pinned");string sha=SetupProgram.HashFile(artifact);
+  if(!SetupProgram.VerifiedFile(artifact,6,sha,reuse,System.Diagnostics.Stopwatch.StartNew()))throw new Exception("Verified existing download was not credited");
+  File.WriteAllText(artifact,"broken");if(SetupProgram.VerifiedFile(artifact,6,sha,reuse,System.Diagnostics.Stopwatch.StartNew()))throw new Exception("Changed existing download received reuse credit");File.Delete(artifact);
+  if(!((string[])plan["selected"]).Contains("ollama"))throw new Exception("Gemma omitted shared Ollama dependency");
+  if((long)plan["project_reserve_bytes"]!=10*SetupProgram.GiB)throw new Exception("Missing project reserve");
+  string before=SetupProgram.Fingerprint(plan);plan["application"]=app+"changed";
+  if(before==SetupProgram.Fingerprint(plan))throw new Exception("Material plan change retained acceptance fingerprint");
+  try{SetupProgram.LocalPath(@"\\server\share\app");throw new Exception("UNC allowed");}catch(IOException){}
+  using(var wizard=new SetupWizard()){
+   var fields=typeof(SetupWizard).GetFields(System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance);
+   var checkbox=(CheckBox)fields.First(f=>f.Name=="acceptance").GetValue(wizard);
+   var button=(Button)fields.First(f=>f.Name=="install").GetValue(wizard);
+   if(checkbox.Checked||button.Enabled)throw new Exception("Acceptance starts checked or installation enabled");
+  }
+  Console.WriteLine("PASS hardware thresholds, Unknown refusal, gated access, dependency accounting, preaccept no mutation, acceptance invalidation, destination boundary and unchecked UI");return 0;
+ }
+}

@@ -373,3 +373,12 @@ Suno remains explicitly disabled because official API/account access was not ver
 music import works. Ollama structured planning was fixture-tested; a reachable local
 server and installed local model are required for a live planner check. No cloud LLM
 service or live Ollama model was used in acceptance testing.
+
+
+## Windows 11 setup implementation checks (2026-10-12)
+
+The local unsigned setup candidate includes a rebuilt native payload, the acceptance/accounting wizard and a current first-party source snapshot. The native package has 17,479 inventoried files. Windows setup policy checks passed (hardware/Unknown refusal, gated access, dependency accounting, no preaccept mutation, destination checks, acceptance invalidation and unchecked UI). Native extractor fixtures passed valid/corrupt/traversal/drive-path/missing/low-space cases and portable storage checks.
+
+Backend regression run: 107 passed, 2 skipped, 3 media failures caused by the test harness's absolute Windows font path. After correcting the harness to the runtime's relative font path, all three failures and two setup-report checks passed. Subsequent model/archive/evidence checks passed 17 tests; resource recovery checks passed 4 with 1 skip. The frontend production build and all 14 Windows browser tests passed against an isolated native PostgreSQL workspace. Setup's own media check passed narration, preview/final MP4, SRT/VTT and OpenShot bundle checks. The initial smoke check incorrectly requested an OpenShot bundle for a preview; it now checks the final export. An upstream eSpeak dictionary filename with trailing spaces is normalized at build time while preserving archive collision checks.
+
+This is validation on the existing Windows workstation, not clean-machine qualification. Optional newly pinned Ollama/Gemma downloads and media model generation were not executed in this session. The clean-machine/upgrade/recovery matrix and remaining accounting limitations are listed in `packaging/setup/README.md`. GitHub authentication works outside the network sandbox. Repository admin access is confirmed; full publication remains gated on clean Windows qualification. Existing production projects, credentials, media and model storage were not changed; tests used `artifacts/setup/core-test`. Actual workstation setup remains gated on user acceptance.

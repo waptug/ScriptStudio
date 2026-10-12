@@ -464,3 +464,8 @@ Actual production timing and the final export correctly exclude those directions
 - Local verification/deployment tooling and backup evidence:
   D:/ScriptStudio/documentation-work/{verify-docs.cjs,deploy-manuals.ps1} and
   ScriptStudioNative/workspace-local-models/manuals-ui-deployment.json.
+
+
+## Windows 11 setup implementation (2026-10-11)
+
+Added a C# acceptance wizard, versioned local accounting/evidence, pinned optional Ollama/Gemma metadata, private service lifecycle, isolated core media smoke verification, hashed package inventory, release guards, tag build workflow and matching-release download helper. Source is in `packaging/setup`. Clean-machine qualification and the remaining limitations listed in its README must pass before publishing. Existing workspaces have not been installed into or modified by this implementation session. GitHub authentication and repository admin access are confirmed outside the network sandbox. Prepare the source/tag and a draft preview release; full publication remains gated on clean Windows qualification.

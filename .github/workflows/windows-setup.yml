@@ -1,0 +1,53 @@
+name: Windows 11 setup release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: windows-setup-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  setup:
+    # Prepared WSL build host attached to Windows 11. See packaging/setup/README.md.
+    runs-on: [self-hosted, Linux, X64, scriptstudio-windows11]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require a tagged source revision
+        run: git describe --tags --exact-match
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.13.1'
+      - name: Build frontend
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+      - name: Check native inputs and build
+        run: |
+          python3 packaging/setup/verify_inputs.py
+          python3 packaging/native/build.py
+          python3 packaging/setup/build.py
+          python3 packaging/setup/validate.py artifacts/setup/ScriptStudio-Setup.exe
+          python3 packaging/setup/test_setup.py
+          python3 packaging/native/test_launcher.py
+      - name: Save artifact for clean Windows qualification
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows11-setup
+          path: |
+            artifacts/setup/ScriptStudio-Setup.exe
+            artifacts/setup/ScriptStudio-Setup.exe.sha256
+            artifacts/setup/setup-manifest.json
+      - name: Create draft release for qualification
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            test "$(gh release view "${GITHUB_REF_NAME}" --json isDraft --jq '.isDraft')" = true
+            gh release upload "${GITHUB_REF_NAME}" --clobber artifacts/setup/ScriptStudio-Setup.exe artifacts/setup/ScriptStudio-Setup.exe.sha256
+            gh release edit "${GITHUB_REF_NAME}" --notes-file packaging/setup/release-notes.md
+          else
+            gh release create "${GITHUB_REF_NAME}" --draft --verify-tag --title "ScriptStudio ${GITHUB_REF_NAME}" --notes-file packaging/setup/release-notes.md artifacts/setup/ScriptStudio-Setup.exe artifacts/setup/ScriptStudio-Setup.exe.sha256
+          fi

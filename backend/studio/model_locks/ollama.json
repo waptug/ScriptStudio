@@ -1,0 +1,17 @@
+{
+  "revision": "v0.40.3",
+  "python_tag": "none",
+  "expanded_bytes": 6442450944,
+  "license": "MIT",
+  "source": "https://github.com/ollama/ollama",
+  "expansion_basis": "Conservative 6 GiB allowance; archive uncompressed bytes checked before extraction",
+  "artifacts": [
+    {
+      "url": "https://github.com/ollama/ollama/releases/download/v0.40.3/ollama-windows-amd64.zip",
+      "path": "downloads/ollama-windows-amd64.zip",
+      "size": 1468053171,
+      "sha256": "e5ecff02dfc7cae8ddf6d6b7a7ac5f727ffeedf4491f44ae75ff5b0820dbbbd5",
+      "extract": "runtime"
+    }
+  ]
+}

@@ -79,13 +79,13 @@ class Host:
                 if row['State']['Running'] and not row['State']['Paused']:
                     actions.append({'kind': 'container', 'id': row['Id'], 'name': row['Name']})
         if os.name == 'nt':
-            if self.config.get('high_performance', True):
+            if self.config.get('high_performance', False):
                 scheme = self.run(['powercfg.exe', '/getactivescheme'])
                 guid = re.search(r'[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}', scheme)
                 if not guid:
                     raise RuntimeError('Cannot identify current power scheme')
                 actions.append({'kind': 'power', 'original': guid.group()})
-            if self.config.get('above_normal_priority', True):
+            if self.config.get('above_normal_priority', False):
                 original = json.loads(self.powershell(
                     f'$p=Get-Process -Id {int(owner)}; '
                     '@{priority=$p.PriorityClass.ToString();ticks=$p.StartTime.Ticks.ToString()} | ConvertTo-Json'))
@@ -215,10 +215,10 @@ class RenderResources:
         directory = Path(self.directory)
         config_path = directory / 'resource-optimization.json'
         if not config_path.exists():
-            atomic_json(config_path, {'enabled': True, 'containers': [], 'wsl_distribution': 'Ubuntu',
-                                     'high_performance': True, 'above_normal_priority': True})
+            atomic_json(config_path, {'enabled': False, 'containers': [], 'wsl_distribution': 'Ubuntu',
+                                     'high_performance': False, 'above_normal_priority': False})
         config = json.loads(config_path.read_text(encoding='utf-8-sig'))
-        needed = needed and config.get('enabled', True)
+        needed = needed and config.get('enabled', False)
         if self.process is not None and self.process.poll() is not None:
             self.process = None
             self.active = False
