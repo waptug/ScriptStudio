@@ -469,3 +469,8 @@ Actual production timing and the final export correctly exclude those directions
 ## Windows 11 setup implementation (2026-10-11)
 
 Added a C# acceptance wizard, versioned local accounting/evidence, pinned optional Ollama/Gemma metadata, private service lifecycle, isolated core media smoke verification, hashed package inventory, release guards, tag build workflow and matching-release download helper. Source is in `packaging/setup`. Clean-machine qualification and the remaining limitations listed in its README must pass before publishing. Existing workspaces have not been installed into or modified by this implementation session. GitHub authentication and repository admin access are confirmed outside the network sandbox. Prepare the source/tag and a draft preview release; full publication remains gated on clean Windows qualification.
+
+
+## Public core preview delivery
+
+Published `v0.3.0-setup-preview.2` as a public prerelease after isolated Windows 11 core qualification. README links to that exact installer and release notes; a normal default-branch clone includes the source, build tooling and checksum-verifying download helper. Optional model/GPU qualification remains outstanding and is disclosed in the public notes. VM images, credentials, projects and installer binaries remain outside Git history.
