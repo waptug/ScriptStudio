@@ -9,6 +9,9 @@ dist/
 data/
 *.sqlite*
 artifacts/
+/ScriptStudio-Setup.exe
+/ScriptStudio-Setup.exe.sha256
+/ScriptStudio-Setup.exe.part
 frontend/test-results/
 frontend/playwright-report/
 backups/

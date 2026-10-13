@@ -13,10 +13,10 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("ScriptStudio Native")]
 [assembly: AssemblyDescription("Standalone native Windows script-to-video studio")]
-[assembly: AssemblyVersion("0.2.0.0")]
+[assembly: AssemblyVersion("0.3.0.0")]
 static class Program {
  public static readonly string LaunchDirectory=Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
- public static readonly string Root=Path.Combine(LaunchDirectory,"ScriptStudioNative");
+ public static string Root=Path.Combine(LaunchDirectory,"ScriptStudioNative");
  public const long WorkingReserve=2L*1024*1024*1024;
  public static string Data=Path.Combine(Root,"data");
  public static Action<string> Log=delegate(string s){};
@@ -31,6 +31,11 @@ static class Program {
  }
  [STAThread] static int Main(string[] args) {
   Application.EnableVisualStyles();
+  string installed=Path.Combine(LaunchDirectory,"installation.json");
+  if(File.Exists(installed)) {
+   var config=new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<System.Collections.Generic.Dictionary<string,object>>(File.ReadAllText(installed));
+   Root=Path.GetFullPath((string)config["storage"]);Data=Path.Combine(Root,"data");
+  }
   bool autoStart=args.Length>0&&args[args.Length-1]=="--start";
   if(autoStart)args=args.Take(args.Length-1).ToArray();
   string workspace=null;
@@ -56,6 +61,12 @@ static class Program {
       return 0;
      }
      if(args[0]=="--verify") { Console.WriteLine(Extract()); return 0; }
+     if(args[0]=="--setup-serve") {
+      if(args.Length==2&&args[1]=="--check")Data=Path.Combine(Root,"setup-verification");
+      Directory.CreateDirectory(Data);
+      Log=delegate(string s){File.AppendAllText(Path.Combine(Data,"launcher.log"),s+Environment.NewLine);};
+      Start();Backend.WaitForExit();return Backend.ExitCode;
+     }
      if(args[0]=="--serve-test") {
       Data=Path.Combine(Root,"test-data");
       Directory.CreateDirectory(Data);
@@ -90,15 +101,29 @@ static class Program {
   Backend.OutputDataReceived+=(s,e)=>{if(e.Data!=null)Log(e.Data);};
   Backend.ErrorDataReceived+=(s,e)=>{if(e.Data!=null)Log(e.Data);};
   Backend.BeginOutputReadLine();Backend.BeginErrorReadLine();
-  for(int i=0;i<1200;i++) {
+  DateTime deadline=DateTime.UtcNow.AddMinutes(5);
+  while(DateTime.UtcNow<deadline) {
    if(Backend.HasExited)throw new Exception("Native runtime stopped. See "+Path.Combine(Data,"runtime.log"));
-   if(File.Exists(ready)) {
-    var json=new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<System.Collections.Generic.Dictionary<string,object>>(File.ReadAllText(ready));
-    Url=(string)json["url"];Log("Ready: "+Url);return;
-   }
+   string endpoint;
+   if(TryReadReady(ready,out endpoint)&&Healthy(endpoint)){Url=endpoint;Log("Ready: "+Url);return;}
    Thread.Sleep(250);
   }
   throw new Exception("Startup timed out. See the logs in "+Data);
+ }
+ public static bool TryReadReady(string file,out string endpoint) {
+  endpoint=null;
+  try {
+   using(var stream=new FileStream(file,FileMode.Open,FileAccess.Read,FileShare.ReadWrite|FileShare.Delete))using(var reader=new StreamReader(stream)){
+    var record=new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<System.Collections.Generic.Dictionary<string,object>>(reader.ReadToEnd());
+    object value;Uri uri;if(record==null||!record.TryGetValue("url",out value)||!(value is string)||!Uri.TryCreate((string)value,UriKind.Absolute,out uri)||uri.Scheme!="http"||uri.Host!="127.0.0.1")return false;
+    endpoint=(string)value;return true;
+   }
+  }catch(IOException){return false;}catch(UnauthorizedAccessException){return false;}catch(ArgumentException){return false;}
+ }
+ public static bool Healthy(string endpoint) {
+  try {var request=(System.Net.HttpWebRequest)System.Net.WebRequest.Create(endpoint+"/api/health");request.Proxy=null;request.Timeout=1000;request.ReadWriteTimeout=1000;
+   using(var response=request.GetResponse())using(var reader=new StreamReader(response.GetResponseStream())){var record=new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<System.Collections.Generic.Dictionary<string,object>>(reader.ReadToEnd());return record!=null&&record.ContainsKey("status")&&(string)record["status"]=="ok";}
+  }catch(System.Net.WebException){return false;}catch(IOException){return false;}catch(ArgumentException){return false;}
  }
  public static void Stop() {
   if(Backend==null||Backend.HasExited)return;
@@ -111,7 +136,8 @@ static class Program {
     static extern bool GetDiskFreeSpaceEx(string path, out ulong available, out ulong total, out ulong free);
     public static void CheckSpace(long required) {
         ulong available,total,free;
-        if(!GetDiskFreeSpaceEx(LaunchDirectory,out available,out total,out free))
+        string volume=Root;while(!Directory.Exists(volume))volume=Path.GetDirectoryName(volume);
+        if(!GetDiskFreeSpaceEx(volume,out available,out total,out free))
             throw new IOException("Cannot check free space in " + LaunchDirectory + ". Close the launcher and move the EXE to a writable local folder.");
         RequireSpace(required,(long)Math.Min(available,(ulong)long.MaxValue));
     }
@@ -179,14 +205,27 @@ static class Program {
                 payload.Position=0;
                 using(var archive=new ZipArchive(payload,ZipArchiveMode.Read,true)) {
                     long required=WorkingReserve;
+                    var names=new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase);
                     foreach(var entry in archive.Entries) {
                         string file=Path.GetFullPath(Path.Combine(destination,entry.FullName));
                         if(!file.StartsWith(destination+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase) || entry.FullName.Contains(":"))
                             throw new Exception("Unsafe package entry.");
+                        if(!names.Add(file)||entry.FullName.Split(new[]{'/','\\'}).Any(p=>p==".."||p.EndsWith(".")||p.EndsWith(" ")||System.Text.RegularExpressions.Regex.IsMatch(p,"^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\\.|$)",System.Text.RegularExpressions.RegexOptions.IgnoreCase)))throw new IOException("Ambiguous Windows archive path");
                         if(!cached)required=checked(required+entry.Length+4096);
                     }
                     CheckSpace(required); // No extraction or temporary ZIP is written before this check.
-                    if(cached)return destination;
+                    if(cached){
+                        try {
+                            var embedded=archive.GetEntry("file-inventory.json");
+                            if(embedded!=null){using(var source=embedded.Open())using(var hash=SHA256.Create())using(var existing=File.OpenRead(Path.Combine(destination,"file-inventory.json")))if(!hash.ComputeHash(source).SequenceEqual(hash.ComputeHash(existing)))throw new IOException("Cached inventory changed");}
+                            VerifyInventory(destination);return destination;
+                        } catch(IOException) {
+                            // Rebuild from the verified payload; retain changed files for inspection.
+                            CheckSpace(checked(WorkingReserve+archive.Entries.Sum(e=>e.Length+4096)));
+                            Directory.Move(destination,destination+".repair-"+Guid.NewGuid().ToString("N"));
+                            cached=false;
+                        }
+                    }
                     if(Directory.Exists(destination))throw new Exception("Incomplete package directory exists: "+destination);
                     string staging=destination+".staging-"+Guid.NewGuid().ToString("N");
                     Directory.CreateDirectory(staging);
@@ -199,6 +238,7 @@ static class Program {
                         }
                         foreach(string name in new[]{"runtime.py","python/python.exe","postgres/bin/postgres.exe","openshot/MediaHost.exe","source.zip","LICENSE.txt","README.txt"})
                             if(!File.Exists(Path.Combine(staging,name)))throw new Exception("Package is missing "+name);
+                        VerifyInventory(staging);
                         File.WriteAllText(Path.Combine(staging,"package.sha256"),id);
                         Directory.Move(staging,destination);
                     } catch {
@@ -212,7 +252,29 @@ static class Program {
     }
 
     public static string Hex(byte[] data) { return BitConverter.ToString(data).Replace("-","").ToLowerInvariant(); }
-    static string Quote(string arg) {
+    public static void VerifyInventory(string directory) {
+        string inventory=Path.Combine(directory,"file-inventory.json");
+        // Legacy portable packages did not include this inventory. New setup builds require it.
+        if(!File.Exists(inventory))return;
+        var serializer=new System.Web.Script.Serialization.JavaScriptSerializer {MaxJsonLength=64*1024*1024};
+        var files=serializer.Deserialize<System.Collections.Generic.Dictionary<string,string>>(File.ReadAllText(inventory));
+        foreach(var pair in files){
+            string file=Path.GetFullPath(Path.Combine(directory,pair.Key));
+            if(!file.StartsWith(directory+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase)||!File.Exists(file))throw new IOException("Missing or unsafe component: "+pair.Key);
+            string cursor=file;while(cursor!=directory){if((File.GetAttributes(cursor)&FileAttributes.ReparsePoint)!=0)throw new IOException("Component link refused");cursor=Path.GetDirectoryName(cursor);}
+            using(var source=File.OpenRead(file))using(var hash=SHA256.Create())if(Hex(hash.ComputeHash(source))!=pair.Value)throw new IOException("Component needs repair: "+pair.Key);
+        }
+        VerifyNames(directory,directory,new System.Collections.Generic.HashSet<string>(files.Keys,StringComparer.OrdinalIgnoreCase));
+    }
+    static void VerifyNames(string root,string folder,System.Collections.Generic.HashSet<string> expected){
+        if((File.GetAttributes(folder)&FileAttributes.ReparsePoint)!=0)throw new IOException("Component directory link refused");
+        foreach(string file in Directory.GetFiles(folder)){
+            string name=file.Substring(root.Length+1).Replace('\\','/');
+            if(name!="file-inventory.json"&&name!="package.sha256"&&!expected.Contains(name))throw new IOException("Unexpected component: "+name);
+        }
+        foreach(string child in Directory.GetDirectories(folder))VerifyNames(root,child,expected);
+    }
+    public static string Quote(string arg) {
         // Windows command-line quoting (no shell is involved).
         // WSL's option parser needs bare switches, unlike CommandLineToArgvW.
         if(arg.Length > 0 && !arg.Any(Char.IsWhiteSpace) && !arg.Contains("\"")) return arg;

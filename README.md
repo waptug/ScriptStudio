@@ -1,5 +1,17 @@
 # ScriptStudio
 
+**[Download Windows 11 installer](https://github.com/waptug/ScriptStudio/releases/download/v0.3.0-setup-preview.2/ScriptStudio-Setup.exe)** · **[Clone source](https://github.com/waptug/ScriptStudio)**
+
+The single EXE includes the native core; selected AI models download after hardware review and acceptance. The installer is unsigned. See [setup requirements and build/qualification status](packaging/setup/README.md). This preview passed isolated Windows 11 core tests. Optional AI model installation and generation remain unverified. See the [public release notes and checksum](https://github.com/waptug/ScriptStudio/releases/tag/v0.3.0-setup-preview.2).
+
+```sh
+git clone https://github.com/waptug/ScriptStudio.git
+cd ScriptStudio
+python3 scripts/download-installer.py --tag v0.3.0-setup-preview.2
+```
+
+Windows users can download and run the EXE directly without cloning or installing Python. Cloning provides source and build tooling; the optional helper above requires Python and verifies the release checksum before retaining the installer.
+
 A local, single-user script-to-video studio with a React editor, durable Python
 production services, and **OpenShot's actual video compositor**. Mock mode produces
 playable narrated videos without any paid credentials.

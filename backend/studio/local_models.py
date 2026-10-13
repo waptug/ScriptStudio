@@ -189,6 +189,7 @@ def extract_wheel(archive, runtime, canceled, report=None):
 
 class LocalModelService:
     def catalog(self):
+        from .setup_report import model_evidence
         models=[]
         for name, info in CATALOG.items():
             lock=manifest(name); saved=state(name)
@@ -201,7 +202,7 @@ class LocalModelService:
                 except ValueError:
                     pass
             ready=saved.get('state')=='ready' and bool(lock) and (root()/name/'runtime/python.exe').is_file() and saved.get('revision')==lock['revision']
-            models.append({**info,**public_state(saved),'id':name,'ready':ready,
+            models.append({**info,**public_state(saved),**model_evidence(name,saved),'id':name,'ready':ready,
                 'supported':os.name=='nt', 'installable':bool(lock),
                 'download_bytes':sum(a['size'] for a in lock['artifacts']) if lock else None,
                 'installed_bytes':lock.get('expanded_bytes') if lock else None,
@@ -218,8 +219,9 @@ class LocalModelService:
         lock=manifest(name)
         if action=='cancel':
             update(name,cancel=True); return public_state(state(name))
-        if action not in ('install','resume','verify','uninstall'): raise ValueError('Unknown installation action')
+        if action not in ('install','resume','verify','test','uninstall'): raise ValueError('Unknown installation action')
         if action!='uninstall' and not lock: raise ValueError('Pinned native artifacts are not available for this model in this build')
+        if action=='test': self.require_ready(name)
         if action=='install':
             saved=state(name)
             if saved.get('state')=='ready' and saved.get('revision')==lock['revision'] and (root()/name/'runtime/python.exe').is_file():
@@ -235,7 +237,7 @@ class LocalModelService:
         model_guard=file_reservation(root()/(name+'.lock'))
         try: model_guard.__enter__()
         except Exception: reservation.__exit__(None,None,None); raise
-        update(name,state='verifying' if action=='verify' else 'installing',cancel=False,error=None,
+        update(name,state='verifying' if action in ('verify','test') else 'installing',cancel=False,error=None,
                phase='preparing',detail='Preparing '+action,progress=None,completed_bytes=0,total_bytes=None,
                started_at=time.time(),heartbeat=time.time(),progress_updated=time.time(),
                license_accepted=accept_license or state(name).get('license_accepted',False))
@@ -250,15 +252,58 @@ class LocalModelService:
                 if action=='uninstall':
                     shutil.rmtree(root()/name,ignore_errors=True)
                     update(name,state='not_installed',progress=0,inventory=None)
+                elif action=='test':
+                    self.test_generation(name)
                 else: self.install(name,lock,verify_only=action=='verify')
-            except InterruptedError as exc: update(name,state='interrupted',error=str(exc))
-            except Exception as exc: update(name,state='failed',error=str(exc)[:500])
+            except InterruptedError as exc: update(name,state='interrupted',error=str(exc),**({'generation_verification_status':'canceled'} if action=='test' else {}))
+            except Exception as exc: update(name,state='failed',error=str(exc)[:500],**({'generation_verification_status':'failed'} if action=='test' else {}))
             finally:
                 stopped.set()
                 pulse.join()
                 model_guard.__exit__(None,None,None); reservation.__exit__(None,None,None)
         threading.Thread(target=work,daemon=True,name='model-install-'+name).start()
         return public_state(state(name))
+
+    def test_generation(self, name):
+        """Explicit real generation check; Wan can take several minutes."""
+        from contextlib import nullcontext
+        from .local_inference import command, environment, gpu_reservation, unload_ollama
+        import subprocess
+        import wave
+        folder=root()/name/'verification';folder.mkdir(exist_ok=True)
+        output=folder/('output.mp4' if name=='wan' else 'output.wav')
+        output.unlink(missing_ok=True)
+        request=folder/'request.json'
+        request.write_text(json.dumps(dict(model_root=str(root()/name),output=str(output),status=str(folder/'status.json'),
+            seed=42,voice_id='af_heart',text='Welcome to ScriptStudio.',prompt='A quiet sunny meadow' if name=='wan' else 'Soft instrumental piano',duration=3)))
+        update(name,phase='generation_test',detail='Running a real generation check; Wan may take several minutes',generation_verification_status='running')
+        with gpu_reservation() if CATALOG[name]['gpu'] else nullcontext():
+            if CATALOG[name]['gpu']: unload_ollama()
+            with (folder/'generation.log').open('w',encoding='utf-8') as log:
+                process=subprocess.Popen(command(name,name,str(request)),env=environment(),stdout=log,stderr=log,
+                    creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+                deadline=time.monotonic()+900
+                try:
+                    while process.poll() is None:
+                        if state(name).get('cancel'): raise InterruptedError('Generation check canceled')
+                        if time.monotonic()>deadline: raise ValueError('Generation check timed out; inspect its log')
+                        time.sleep(.5)
+                    if process.returncode or not output.is_file(): raise ValueError('Generation check failed; inspect local-models/'+name+'/verification/generation.log')
+                finally:
+                    if process.poll() is None:
+                        process.terminate()
+                        try: process.wait(timeout=10)
+                        except subprocess.TimeoutExpired: process.kill();process.wait()
+        if name=='wan':
+            from .storage import probe
+            media=probe(output)
+            if not any(s.get('codec_type')=='video' for s in media.get('streams',[])) or float(media.get('format',{}).get('duration',0))<=0:
+                raise ValueError('Generation returned no playable video')
+        else:
+            with wave.open(str(output),'rb') as audio:
+                frames=audio.readframes(audio.getnframes())
+                if not frames or not any(frames): raise ValueError('Generation returned empty or silent audio')
+        update(name,state='ready',phase='complete',detail='Real generation check verified',progress=1,generation_verification_status='verified',error=None)
 
     def install(self,name,lock,verify_only=False):
         base=root()/name; base.mkdir(parents=True,exist_ok=True)

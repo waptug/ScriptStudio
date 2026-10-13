@@ -466,6 +466,13 @@ def local_models():
     return LocalModelService().catalog()
 
 
+@app.get('/api/admin/setup-report')
+def setup_report():
+    from .setup_report import evidence
+    return {'contract_version': 1, 'acceptance': evidence('setup-acceptance.json'),
+            'progress': evidence('setup-journal.json'), 'verification': evidence('setup-verification.json')}
+
+
 @app.post('/api/admin/local-models/{name}/{action}')
 def local_model_action(name: str,action: str,payload: LocalModelAction):
     from .local_models import LocalModelService

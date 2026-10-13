@@ -6,15 +6,18 @@ Docker images enter this payload. Rebuild copies current sources and UI.
 import hashlib
 import importlib.metadata
 import json
+import os
 from pathlib import Path
 import shutil
 import struct
+import sys
 import subprocess
 import zipfile
 from win import run, path
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / 'artifacts/native'
+INPUT = Path(os.environ.get('SCRIPTSTUDIO_NATIVE_INPUT', str(OUT)))
 STAGE = OUT / 'stage'
 CSC = '/mnt/c/Windows/Microsoft.NET/Framework64/v4.0.30319/csc.exe'
 
@@ -33,6 +36,21 @@ def copy(source, target):
     else:
         target.parent.mkdir(parents=True, exist_ok=True)
         copy_file(source, target)
+
+
+def normalize_speech_names():
+    # Upstream MSI extraction contains af_dict with trailing spaces. Windows
+    # aliases such names; normalize at build time, never relax archive safety.
+    for file in sorted((STAGE/'speech').rglob('*'), key=lambda p:len(p.parts), reverse=True):
+        name=file.name.rstrip(' .')
+        if not name: raise ValueError('Empty normalized native filename')
+        if name==file.name: continue
+        target=file.with_name(name)
+        if target.exists():
+            if not file.is_file() or not target.is_file() or file.read_bytes()!=target.read_bytes():
+                raise ValueError('Native filename normalization collision')
+            file.unlink()
+        else: file.rename(target)
 
 
 def credits():
@@ -83,46 +101,75 @@ def credits():
 
 
 def main():
-    STAGE.mkdir(parents=True,exist_ok=True)
-    copy(OUT/'python',STAGE/'python')
-    pg=OUT/'postgres/pgsql'
-    for name in ['bin','lib','share','server_license.txt','commandlinetools_3rd_party_licenses.txt']:
-        copy(pg/name,STAGE/'postgres'/name)
-    copy(OUT/'ffmpeg/ffmpeg-9.0.1-essentials_build',STAGE/'ffmpeg')
-    copy(OUT/'speech/eSpeak NG',STAGE/'speech')
-    copy(OUT/'msvc',STAGE/'msvc')
-    for dll in (OUT/'msvc').glob('*.dll'):
-        for directory in ['python','postgres/bin','speech']:
-            copy(dll,STAGE/directory/dll.name)
-    # Frozen OpenShot's bytecode is required; do not apply the Python source ignore.
-    shutil.copytree(OUT/'openshot/app',STAGE/'openshot',dirs_exist_ok=True,copy_function=copy_file)
+    finalize='--finalize-staging' in sys.argv
+    if finalize:
+        if not (STAGE/'manifest.json').is_file() or not (OUT/'ScriptStudio-Native-Windows-x64.exe').is_file():
+            raise ValueError('Finalize requires a completed local native build')
+        previous_credits={p.name:p.read_bytes() for p in (STAGE/'web/credits').glob('*.json')}
+    else:
+        STAGE.mkdir(parents=True,exist_ok=True)
+        # Always rebuild from a clean allowlisted staging tree.
+        if STAGE.exists(): shutil.rmtree(STAGE)
+        STAGE.mkdir(parents=True,exist_ok=True)
+        copy(INPUT/'python',STAGE/'python')
+        pg=INPUT/'postgres/pgsql'
+        for name in ['bin','lib','share','server_license.txt','commandlinetools_3rd_party_licenses.txt']:
+            copy(pg/name,STAGE/'postgres'/name)
+        copy(INPUT/'ffmpeg/ffmpeg-9.0.1-essentials_build',STAGE/'ffmpeg')
+        copy(INPUT/'speech/eSpeak NG',STAGE/'speech')
+        copy(INPUT/'msvc',STAGE/'msvc')
+        for dll in (INPUT/'msvc').glob('*.dll'):
+            for directory in ['python','postgres/bin','speech']:
+                copy(dll,STAGE/directory/dll.name)
+        # Frozen OpenShot's bytecode is required; do not apply the Python source ignore.
+        shutil.copytree(INPUT/'openshot/app',STAGE/'openshot',dirs_exist_ok=True,copy_function=copy_file)
+    print('Refreshing first-party application sources',flush=True)
     copy(ROOT/'backend',STAGE/'backend')
     copy(ROOT/'frontend/dist',STAGE/'web')
     copy(ROOT/'packaging/native/runtime.py',STAGE/'runtime.py')
+    copy(ROOT/'packaging/setup/components.py',STAGE/'setup_components.py')
+    normalize_speech_names()
     copy(Path('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'),STAGE/'backend/DejaVuSans.ttf')
     for source,target in [('LICENSE','LICENSE.txt'),('NOTICE.md','NOTICE.txt'),('packaging/native/README.md','README.txt')]:
         copy(ROOT/source,STAGE/target)
     run(CSC,'/nologo','/target:exe','/platform:x64','/out:'+path(STAGE/'openshot/MediaHost.exe'),path(ROOT/'packaging/native/MediaHost.cs'))
-    credits()
+    if finalize:
+        native_files=json.loads(previous_credits['native-files.json'])
+        for item in native_files:
+            item['path']='/'.join(p.rstrip(' .') for p in item['path'].replace('\\','/').split('/'))
+            if item['path']=='openshot/MediaHost.exe':
+                item['sha256']=hashlib.file_digest((STAGE/item['path']).open('rb'),'sha256').hexdigest()
+        previous_credits['native-files.json']=json.dumps(native_files,indent=2).encode()
+        for name,data in previous_credits.items(): (STAGE/'web/credits'/name).write_bytes(data)
+    else:
+        credits()
     files=subprocess.check_output(['git','ls-files','--cached','--others','--exclude-standard','-z'],cwd=ROOT).decode().split('\0')
     with zipfile.ZipFile(STAGE/'source.zip','w',zipfile.ZIP_DEFLATED) as z:
         for name in sorted(set(files)):
             p=ROOT/name
             if name and p.is_file() and not p.is_symlink():
+                if name.split('/')[0] not in {'backend','frontend','packaging','docs','scripts','samples','.github','README.md','PLAN.md','LICENSE','NOTICE.md','AGENTS.md','compose.yaml','.gitignore','.env.example'}: continue
                 if p.name.startswith('.env') and p.name!='.env.example':raise ValueError('Refusing environment file')
                 z.write(p,name)
     manifest={'format':'native-windows-x64','source_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
-        'downloads':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted((OUT/'downloads').iterdir()) if p.is_file() and p.name!='ready'},
+        'downloads':{p.name:hashlib.file_digest(p.open('rb'),'sha256').hexdigest() for p in sorted((INPUT/'downloads').iterdir()) if p.is_file() and p.name!='ready'},
         'source_sha256':hashlib.sha256((STAGE/'source.zip').read_bytes()).hexdigest()}
+    manifest['source_dirty']=bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip())
     (STAGE/'manifest.json').write_text(json.dumps(manifest,indent=2))
     (OUT/'manifest.json').write_text(json.dumps(manifest,indent=2))
+    (STAGE/'file-inventory.json').unlink(missing_ok=True)
+    print('Hashing complete embedded inventory',flush=True)
+    inventory={str(p.relative_to(STAGE)).replace('\\','/'):hashlib.file_digest(p.open('rb'),'sha256').hexdigest()
+               for p in sorted(STAGE.rglob('*')) if p.is_file()}
+    (STAGE/'file-inventory.json').write_text(json.dumps(inventory,sort_keys=True))
     exe=OUT/'ScriptStudio-Native-Windows-x64.exe'
     run(CSC,'/nologo','/target:winexe','/platform:x64','/reference:System.Windows.Forms.dll','/reference:System.Drawing.dll',
         '/reference:System.IO.Compression.dll','/reference:System.IO.Compression.FileSystem.dll','/reference:System.Web.Extensions.dll',
         '/win32icon:'+path(ROOT/'frontend/public/favicon.ico'),'/resource:'+path(ROOT/'frontend/public/favicon.ico')+',ScriptStudio.ico',
         '/out:'+path(exe),path(ROOT/'packaging/native/Launcher.cs'))
     payload=OUT/'payload.zip'
-    with zipfile.ZipFile(payload,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+    print('Compressing native payload',flush=True)
+    with zipfile.ZipFile(payload,'w',zipfile.ZIP_DEFLATED,compresslevel=1) as z:
         for p in sorted(STAGE.rglob('*')):
             if p.is_file():z.write(p,str(p.relative_to(STAGE)))
     digest=hashlib.sha256(payload.read_bytes()).digest()
