@@ -46,3 +46,10 @@ opening the gate; FirstLogonCommands can start before first-login screens finish
 The harness allows five minutes for a cold setup launch and verifies that the
 action buttons fit within the guest display working area. A new preview can use
 a fresh media directory and the existing VM-only credential file.
+
+Completed core evidence is summarized in `docs/verification.md` and the fixture’s
+`results/report.html`. Read-only installer media is intentional: the setup copy
+must normalize its application-owned uninstaller before atomic repair. Cold HDD
+startup can exceed five minutes, so the harness permits fifteen minutes while
+retaining full file verification. A resumed harness preserves already-passed
+cache-repair evidence and proceeds with the remaining installer repair.
