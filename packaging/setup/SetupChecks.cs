@@ -42,6 +42,11 @@ static class SetupChecks {
   using(var writer=new FileStream(ready,FileMode.Open,FileAccess.ReadWrite,FileShare.None))if(Program.TryReadReady(ready,out endpoint))throw new Exception("Locked readiness accepted");
   if(!Program.TryReadReady(ready,out endpoint)||endpoint!="http://127.0.0.1:32123")throw new Exception("Complete readiness refused after writer closed");
   File.WriteAllText(ready,"{\"url\":\"https://example.com\"}");if(Program.TryReadReady(ready,out endpoint))throw new Exception("Non-loopback readiness accepted");File.Delete(ready);
+  var production=SetupProgram.Json.Deserialize<Dictionary<string,object>>("{\"assets\":[{\"id\":\"narration\"}],\"timeline\":{\"items\":[{\"track\":\"narration\",\"asset_id\":\"narration\"},{\"track\":\"video\",\"asset_id\":null},{\"track\":\"caption\"}]}}");
+  if(SetupProgram.MediaPlaced(production))throw new Exception("Follow-up media was not awaited");
+  var timeline=(Dictionary<string,object>)production["timeline"];var items=((System.Collections.IEnumerable)timeline["items"]).Cast<Dictionary<string,object>>().ToArray();items[1]["asset_id"]="video";production["assets"]=new[]{new Dictionary<string,object>{{"id","narration"}},new Dictionary<string,object>{{"id","video"}}};
+  if(!SetupProgram.MediaPlaced(production))throw new Exception("Complete media refused");
+  Console.WriteLine("PASS narration-ready timeline waits for follow-up media placement");
   Console.WriteLine("PASS partial/locked readiness retry and loopback endpoint boundary");
   Console.WriteLine("PASS hardware thresholds, Unknown refusal, gated access, dependency accounting, preaccept no mutation, acceptance invalidation, destination boundary and unchecked UI");return 0;
  }
