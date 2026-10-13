@@ -243,12 +243,13 @@ class SetupWizard : Form {
  CheckBox acceptance=new CheckBox {Text="I reviewed the accounting report and accept the selected installation actions and licenses.",AutoSize=true};
  Button scan=new Button {Text="Scan / Review",AutoSize=true},install=new Button {Text="Accept and install",AutoSize=true,Enabled=false},cancel=new Button {Text="Cancel",AutoSize=true,Enabled=false},launch=new Button {Text="Launch",AutoSize=true,Enabled=false};
  Dictionary<string,object> inventory,plan;string fingerprint;bool busy;
- public SetupWizard(){Text="ScriptStudio · Windows 11 Setup";Width=940;Height=780;StartPosition=FormStartPosition.CenterScreen;Font=new Font("Segoe UI",10);
+ public SetupWizard(){Text="ScriptStudio · Windows 11 Setup";var area=Screen.FromPoint(Cursor.Position).WorkingArea;Width=Math.Min(940,area.Width);Height=Math.Min(780,area.Height);MinimumSize=new Size(Math.Min(760,area.Width),Math.Min(620,area.Height));StartPosition=FormStartPosition.CenterScreen;Font=new Font("Segoe UI",10);
+  acceptance.AutoSize=false;acceptance.Width=Math.Max(200,ClientSize.Width-40);acceptance.Height=48;
   var top=new FlowLayoutPanel {Dock=DockStyle.Top,Height=315,FlowDirection=FlowDirection.TopDown,WrapContents=false,Padding=new Padding(12)};
   top.Controls.Add(new Label {Text="Scan → Select features/location → Review accounting → Accept and install → Verify → Launch",AutoSize=true});
   top.Controls.Add(new Label {Text="Application location",AutoSize=true});top.Controls.Add(app);top.Controls.Add(new Label {Text="Writable project/model storage",AutoSize=true});top.Controls.Add(storage);top.Controls.Add(features);
   foreach(Dictionary<string,object> item in SetupProgram.Features)if((string)item["id"]!="core")features.Items.Add(item["id"]);
-  var bottom=new FlowLayoutPanel {Dock=DockStyle.Bottom,Height=100,Padding=new Padding(12)};bottom.Controls.Add(acceptance);bottom.SetFlowBreak(acceptance,true);
+  var bottom=new FlowLayoutPanel {Dock=DockStyle.Bottom,Height=170,Padding=new Padding(12)};bottom.Controls.Add(acceptance);bottom.SetFlowBreak(acceptance,true);
   var json=new Button {Text="Save JSON",AutoSize=true};var html=new Button {Text="Save printable HTML",AutoSize=true};bottom.Controls.AddRange(new Control[]{scan,json,html,install,cancel,launch});Controls.Add(report);Controls.Add(top);Controls.Add(bottom);
   Action invalidate=()=>{acceptance.Checked=false;install.Enabled=false;plan=null;};app.TextChanged+=(s,e)=>invalidate();storage.TextChanged+=(s,e)=>invalidate();features.ItemCheck+=(s,e)=>invalidate();acceptance.CheckedChanged+=(s,e)=>install.Enabled=!busy&&acceptance.Checked&&plan!=null&&plan["core_reason"]==null&&(bool)plan["storage_sufficient"];
   scan.Click+=async(s,e)=>{busy=true;scan.Enabled=false;invalidate();try{inventory=await Task.Run(()=>SetupProgram.Inventory());plan=SetupProgram.Plan(inventory,app.Text,storage.Text,features.CheckedItems.Cast<string>().ToArray());fingerprint=SetupProgram.Fingerprint(plan);report.Text=SetupProgram.Pretty(plan);}catch(Exception ex){report.Text=ex.Message;}finally{busy=false;scan.Enabled=true;}};

@@ -107,6 +107,8 @@ def main():
             if name and name.split('/')[0] in allowed and source.is_file() and not source.is_symlink():
                 if source.name.startswith('.env') and source.name!='.env.example':raise ValueError('Environment file in source snapshot')
                 sources.write(source,name)
+    manifest['native_source_commit']=manifest['source_commit']
+    manifest['source_commit']=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     manifest.pop('manifest_sha256',None)
     manifest['setup_source_sha256']=digest(source_snapshot)
     manifest['source_dirty']=bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip())
