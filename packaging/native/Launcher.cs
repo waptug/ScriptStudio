@@ -101,15 +101,29 @@ static class Program {
   Backend.OutputDataReceived+=(s,e)=>{if(e.Data!=null)Log(e.Data);};
   Backend.ErrorDataReceived+=(s,e)=>{if(e.Data!=null)Log(e.Data);};
   Backend.BeginOutputReadLine();Backend.BeginErrorReadLine();
-  for(int i=0;i<1200;i++) {
+  DateTime deadline=DateTime.UtcNow.AddMinutes(5);
+  while(DateTime.UtcNow<deadline) {
    if(Backend.HasExited)throw new Exception("Native runtime stopped. See "+Path.Combine(Data,"runtime.log"));
-   if(File.Exists(ready)) {
-    var json=new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<System.Collections.Generic.Dictionary<string,object>>(File.ReadAllText(ready));
-    Url=(string)json["url"];Log("Ready: "+Url);return;
-   }
+   string endpoint;
+   if(TryReadReady(ready,out endpoint)&&Healthy(endpoint)){Url=endpoint;Log("Ready: "+Url);return;}
    Thread.Sleep(250);
   }
   throw new Exception("Startup timed out. See the logs in "+Data);
+ }
+ public static bool TryReadReady(string file,out string endpoint) {
+  endpoint=null;
+  try {
+   using(var stream=new FileStream(file,FileMode.Open,FileAccess.Read,FileShare.ReadWrite|FileShare.Delete))using(var reader=new StreamReader(stream)){
+    var record=new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<System.Collections.Generic.Dictionary<string,object>>(reader.ReadToEnd());
+    object value;Uri uri;if(record==null||!record.TryGetValue("url",out value)||!(value is string)||!Uri.TryCreate((string)value,UriKind.Absolute,out uri)||uri.Scheme!="http"||uri.Host!="127.0.0.1")return false;
+    endpoint=(string)value;return true;
+   }
+  }catch(IOException){return false;}catch(UnauthorizedAccessException){return false;}catch(ArgumentException){return false;}
+ }
+ public static bool Healthy(string endpoint) {
+  try {var request=(System.Net.HttpWebRequest)System.Net.WebRequest.Create(endpoint+"/api/health");request.Proxy=null;request.Timeout=1000;request.ReadWriteTimeout=1000;
+   using(var response=request.GetResponse())using(var reader=new StreamReader(response.GetResponseStream())){var record=new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<System.Collections.Generic.Dictionary<string,object>>(reader.ReadToEnd());return record!=null&&record.ContainsKey("status")&&(string)record["status"]=="ok";}
+  }catch(System.Net.WebException){return false;}catch(IOException){return false;}catch(ArgumentException){return false;}
  }
  public static void Stop() {
   if(Backend==null||Backend.HasExited)return;

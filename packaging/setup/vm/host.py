@@ -7,7 +7,7 @@ NAME = 'ScriptStudio-Clean-Win11'
 PS = '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe'
 
 def ps(code, timeout=180):
-    command = [PS, '-NoProfile', '-Command', "$ErrorActionPreference='Stop';" + code]
+    command = [PS, '-NoProfile', '-Command', "[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false);$OutputEncoding=[Console]::OutputEncoding;$ErrorActionPreference='Stop';" + code]
     try:
         result = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
     except OSError as error:

@@ -36,6 +36,13 @@ static class SetupChecks {
    var button=(Button)fields.First(f=>f.Name=="install").GetValue(wizard);
    if(checkbox.Checked||button.Enabled)throw new Exception("Acceptance starts checked or installation enabled");
   }
+  string ready=Path.Combine(reuse,"ready.json"),endpoint;
+  File.WriteAllText(ready,"{\"url\":");if(Program.TryReadReady(ready,out endpoint))throw new Exception("Partial readiness accepted");
+  File.WriteAllText(ready,"{\"url\":\"http://127.0.0.1:32123\"}");
+  using(var writer=new FileStream(ready,FileMode.Open,FileAccess.ReadWrite,FileShare.None))if(Program.TryReadReady(ready,out endpoint))throw new Exception("Locked readiness accepted");
+  if(!Program.TryReadReady(ready,out endpoint)||endpoint!="http://127.0.0.1:32123")throw new Exception("Complete readiness refused after writer closed");
+  File.WriteAllText(ready,"{\"url\":\"https://example.com\"}");if(Program.TryReadReady(ready,out endpoint))throw new Exception("Non-loopback readiness accepted");File.Delete(ready);
+  Console.WriteLine("PASS partial/locked readiness retry and loopback endpoint boundary");
   Console.WriteLine("PASS hardware thresholds, Unknown refusal, gated access, dependency accounting, preaccept no mutation, acceptance invalidation, destination boundary and unchecked UI");return 0;
  }
 }

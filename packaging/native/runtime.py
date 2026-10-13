@@ -13,6 +13,19 @@ import threading
 import time
 
 
+def publish_ready(path, record):
+    """Publish a complete readiness record; Windows readers never see a writer lock."""
+    temporary = path.with_name(path.name + '.tmp')
+    try:
+        with temporary.open('w', encoding='utf-8') as stream:
+            json.dump(record, stream)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def free_port():
     with socket.socket() as sock:
         sock.bind(('127.0.0.1', 0))
@@ -149,8 +162,12 @@ def serve(root, data, requested_port):
             while not server.started and not server.should_exit:
                 time.sleep(.1)
             if server.started:
-                ready_path.write_text(json.dumps({'url':f"http://127.0.0.1:{config['port']}",
-                    'pid':os.getpid(), 'runtime':'native-windows', 'database':'PostgreSQL', 'ollama_url':ollama_url}), encoding='utf-8')
+                try:
+                    publish_ready(ready_path, {'url':f"http://127.0.0.1:{config['port']}",
+                        'pid':os.getpid(), 'runtime':'native-windows', 'database':'PostgreSQL', 'ollama_url':ollama_url})
+                except OSError:
+                    logging.exception('Unable to publish runtime readiness')
+                    server.should_exit = True
             while not server.should_exit:
                 if stop_path.exists():
                     server.should_exit = True

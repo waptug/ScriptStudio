@@ -135,7 +135,10 @@ def main():
     run(CSC,'/nologo','/target:exe','/platform:x64','/out:'+path(STAGE/'openshot/MediaHost.exe'),path(ROOT/'packaging/native/MediaHost.cs'))
     if finalize:
         native_files=json.loads(previous_credits['native-files.json'])
-        for item in native_files: item['path']='/'.join(p.rstrip(' .') for p in item['path'].replace('\\','/').split('/'))
+        for item in native_files:
+            item['path']='/'.join(p.rstrip(' .') for p in item['path'].replace('\\','/').split('/'))
+            if item['path']=='openshot/MediaHost.exe':
+                item['sha256']=hashlib.file_digest((STAGE/item['path']).open('rb'),'sha256').hexdigest()
         previous_credits['native-files.json']=json.dumps(native_files,indent=2).encode()
         for name,data in previous_credits.items(): (STAGE/'web/credits'/name).write_bytes(data)
     else:
