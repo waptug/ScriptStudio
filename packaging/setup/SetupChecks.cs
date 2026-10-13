@@ -46,6 +46,9 @@ static class SetupChecks {
   if(SetupProgram.MediaPlaced(production))throw new Exception("Follow-up media was not awaited");
   var timeline=(Dictionary<string,object>)production["timeline"];var items=((System.Collections.IEnumerable)timeline["items"]).Cast<Dictionary<string,object>>().ToArray();items[1]["asset_id"]="video";production["assets"]=new[]{new Dictionary<string,object>{{"id","narration"}},new Dictionary<string,object>{{"id","video"}}};
   if(!SetupProgram.MediaPlaced(production))throw new Exception("Complete media refused");
+  string sourceExe=Path.Combine(reuse,"source.exe"),uninstall=Path.Combine(reuse,"Uninstall.exe");File.WriteAllText(sourceExe,"new");File.SetAttributes(sourceExe,FileAttributes.ReadOnly);File.WriteAllText(uninstall,"old");File.SetAttributes(uninstall,FileAttributes.ReadOnly);
+  SetupProgram.InstallUninstaller(sourceExe,reuse);if(File.ReadAllText(uninstall)!="new"||(File.GetAttributes(uninstall)&FileAttributes.ReadOnly)!=0)throw new Exception("Read-only uninstaller repair failed");File.SetAttributes(sourceExe,FileAttributes.Normal);File.Delete(sourceExe);File.Delete(uninstall);
+  Console.WriteLine("PASS atomic replacement of read-only application-owned uninstaller");
   Console.WriteLine("PASS narration-ready timeline waits for follow-up media placement");
   Console.WriteLine("PASS partial/locked readiness retry and loopback endpoint boundary");
   Console.WriteLine("PASS hardware thresholds, Unknown refusal, gated access, dependency accounting, preaccept no mutation, acceptance invalidation, destination boundary and unchecked UI");return 0;

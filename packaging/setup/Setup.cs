@@ -182,7 +182,7 @@ static class SetupProgram {
       Save(Path.Combine(storage,"setup-verification.json"),new {contract_version=1,results=verification});
      }finally{StopInstalled(data);}
      phase("Creating shortcuts and uninstaller");
-     File.Copy(Exe,Path.Combine(app,"Uninstall.exe"),true);
+     InstallUninstaller(Exe,app);
      Shortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs),"ScriptStudio.lnk"),Path.Combine(destination,"ScriptStudio.exe"),"--start");
      using(var key=Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\ScriptStudio")){key.SetValue("DisplayName","ScriptStudio");key.SetValue("InstallLocation",app);key.SetValue("UninstallString",Program.Quote(Path.Combine(app,"Uninstall.exe"))+" --uninstall");key.SetValue("NoModify",1);key.SetValue("NoRepair",1);}
      Save(Path.Combine(app,"active.json"),new {contract_version=1,directory=destination,storage=storage});
@@ -190,6 +190,12 @@ static class SetupProgram {
     }finally{if(Directory.Exists(staging))Directory.Delete(staging,true);}
    }catch(Exception e){Save(journal,new {contract_version=1,phase=e is OperationCanceledException?"canceled":"interrupted",reason=e.Message,updated_utc=DateTime.UtcNow.ToString("o")});throw;}
   }
+ }
+ public static void InstallUninstaller(string source,string app){
+  string target=Path.Combine(app,"Uninstall.exe"),temporary=Path.Combine(app,"uninstall-"+Guid.NewGuid().ToString("N")+".tmp");
+  try{File.Copy(source,temporary,false);File.SetAttributes(temporary,FileAttributes.Normal);
+   if(File.Exists(target)){var attributes=File.GetAttributes(target);if((attributes&FileAttributes.ReparsePoint)!=0)throw new IOException("Uninstaller link refused");File.SetAttributes(target,attributes&~FileAttributes.ReadOnly);File.Replace(temporary,target,null);}else File.Move(temporary,target);
+  }finally{if(File.Exists(temporary))File.Delete(temporary);}
  }
  public static void CopyTree(string from,string to){Directory.CreateDirectory(to);foreach(string file in Directory.GetFiles(from)){Cancel.Token.ThrowIfCancellationRequested();if((File.GetAttributes(file)&FileAttributes.ReparsePoint)!=0)throw new IOException("Backup refuses filesystem links");File.Copy(file,Path.Combine(to,Path.GetFileName(file)));}foreach(string dir in Directory.GetDirectories(from)){if((File.GetAttributes(dir)&FileAttributes.ReparsePoint)!=0)throw new IOException("Backup refuses filesystem links");CopyTree(dir,Path.Combine(to,Path.GetFileName(dir)));}}
  public static void Extract(string destination){
