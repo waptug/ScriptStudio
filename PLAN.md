@@ -474,3 +474,7 @@ Added a C# acceptance wizard, versioned local accounting/evidence, pinned option
 ## Public core preview delivery
 
 Published `v0.3.0-setup-preview.2` as a public prerelease after isolated Windows 11 core qualification. README links to that exact installer and release notes; a normal default-branch clone includes the source, build tooling and checksum-verifying download helper. Optional model/GPU qualification remains outstanding and is disclosed in the public notes. VM images, credentials, projects and installer binaries remain outside Git history.
+
+## Promo site video showcase (2026-10-14)
+
+Track the published promo page and its website assets under `promo/`, including five showcase videos with native playback controls, responsive cards and direct video links. Deploy assets before HTML and verify the public page and media after publishing.
